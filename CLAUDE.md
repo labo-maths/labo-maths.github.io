@@ -10,6 +10,7 @@ Site statique d'outils de maths interactifs (cours de secondaire, en français).
 - Formules : `data-tex="…"` (+ `data-display`) dans le HTML, `renderTex` / `renderMixed` (`shared/tex.js`) en JS ; texte mêlé de maths avec `$…$`.
 - Logique mathématique dans des modules sans DOM (`exercises.js`, `calc.js`, `model.js`…), testée dans `tests/`.
 - Mise en page responsive : une colonne sous 900px ; respecter `prefers-reduced-motion` pour les animations.
+- Statistiques GoatCounter : les deux `<script>` (réglage `window.goatcounter` + `count.js` de `exokayn.goatcounter.com`) doivent figurer dans le `<head>` de toute nouvelle page ; chiffres privés, pas de compteur visible.
 - La rose en braille en commentaire au début de `index.html` est la signature de l'auteur : la conserver telle quelle.
 
 ## exp-log

@@ -15,6 +15,10 @@ Site : https://labo-maths.github.io
 | [GitHub](https://github.com/labo-maths/labo-maths.github.io) | Dépôt du code et hébergement (GitHub Pages, mise à jour à chaque push sur `main`) |
 | [cdnjs](https://cdnjs.com) (Cloudflare) | KaTeX (formules) et math.js (calcul) |
 | [jsDelivr](https://www.jsdelivr.com) | Plotly (graphiques) |
+| [GoatCounter](https://www.goatcounter.com) | Statistiques de visites, privées et sans cookie (compte partagé avec le portfolio) |
+
+Visites comptées avec GoatCounter (sans cookie, donc sans bannière de consentement) : script dans le `<head>` de chaque page,
+chemins préfixés par le domaine (`labo-maths.github.io/…`) pour les distinguer du portfolio sur https://exokayn.goatcounter.com (rien n'est affiché sur le site).
 
 ## Lancer en local
 
