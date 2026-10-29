@@ -1,7 +1,10 @@
 // KaTeX helpers. KaTeX itself is loaded as a global by each page.
 
+// Inline math is set in \displaystyle so fractions keep full size instead of
+// shrinking into hard-to-read text style; exponents still stay small.
 export function renderTex(el, source, display = false) {
-  globalThis.katex.render(source, el, { throwOnError: false, displayMode: display });
+  const tex = display ? source : `\\displaystyle ${source}`;
+  globalThis.katex.render(tex, el, { throwOnError: false, displayMode: display });
 }
 
 /**
