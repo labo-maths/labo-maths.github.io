@@ -8,6 +8,14 @@ Site : https://labo-maths.github.io
 | Fonctions sinusoïdales : `y = A·sin(ωx − φ) + D`, curseurs, saisie libre, ajustement automatique | [`sinusoides/`](sinusoides/) |
 | Exponentielles et logarithmes : fonctions réciproques, `aˣ`, logarithmes, équations exponentielles et logarithmiques, pense-bête imprimable, générateur d'exercices avec indices, résolution pas à pas et calculatrice | [`exp-log/`](exp-log/) |
 
+## Services
+
+| Service | Rôle |
+|---|---|
+| [GitHub](https://github.com/labo-maths/labo-maths.github.io) | Dépôt du code et hébergement (GitHub Pages, mise à jour à chaque push sur `main`) |
+| [cdnjs](https://cdnjs.com) (Cloudflare) | KaTeX (formules) et math.js (calcul) |
+| [jsDelivr](https://www.jsdelivr.com) | Plotly (graphiques) |
+
 ## Lancer en local
 
 Fichiers statiques, sans installation (math.js, KaTeX et Plotly viennent d'un CDN).
