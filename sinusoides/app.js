@@ -3,8 +3,9 @@
 /* global math, katex, Plotly */
 
 import { linspace, evaluateSinusoid, fitSinusoid, cosPhase, derived } from "./model.js";
-import { piTicks, piLabel } from "./ticks.js";
-import { compileExpression } from "./parser.js";
+import { piTicks, piLabel } from "../shared/ticks.js";
+import { compileExpression } from "../shared/parser.js";
+import { initTheme } from "../shared/theme.js";
 
 const X_RANGE = [-10, 10];
 const Y_RANGE_SLIDERS = [-10.5, 10.5]; // fixed so changing A or D visibly moves the curve
@@ -239,26 +240,6 @@ function setMode(mode) {
   update();
 }
 
-// ---------- theme ----------
-
-function currentTheme() {
-  const set = document.documentElement.dataset.theme;
-  if (set) return set;
-  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
-function toggleTheme() {
-  const next = currentTheme() === "dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = next;
-  try { localStorage.setItem("theme", next); } catch {}
-  updateThemeButton();
-  update();
-}
-
-function updateThemeButton() {
-  $("theme-toggle").textContent = currentTheme() === "dark" ? "☀ Mode clair" : "☾ Mode sombre";
-}
-
 // ---------- wiring ----------
 
 for (const k of SLIDERS) $(k).addEventListener("input", scheduleUpdate);
@@ -286,17 +267,12 @@ for (const chip of document.querySelectorAll("[data-expr]")) {
 for (const id of ["axis", "show-midline", "show-bounds", "show-period"]) {
   $(id).addEventListener("change", update);
 }
-$("theme-toggle").addEventListener("click", toggleTheme);
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-  updateThemeButton();
-  update();
-});
+initTheme($("theme-toggle"), update);
 
 for (const el of document.querySelectorAll("[data-tex]")) {
   renderTex(el, el.dataset.tex, el.hasAttribute("data-display"));
 }
 
-updateThemeButton();
 update();
 
 // Re-label π ticks when the user zooms or pans.

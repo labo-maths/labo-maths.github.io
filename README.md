@@ -1,15 +1,15 @@
-# sinusoidal-web
+# Labo maths
 
-Outil pédagogique pour explorer les fonctions sinusoïdales `y = A·sin(ωx − φ) + D`.
-Version web de [sinusoidalFunctions](../sinusoidalFunctions) (Python/tkinter).
+Outils interactifs pour comprendre les mathématiques en les manipulant.
+Site : https://labo-maths.github.io
 
-- **Curseurs** : faire varier A, ω, φ et D et voir la courbe, la ligne médiane, les bornes `D ± A`, un pic `x_p` et la période `T`.
-- **Saisie libre** : taper n'importe quelle fonction de `x` (`2 sin(3x - pi/4) + 1`, `sin(x) + cos(x)`…). L'appli ajuste la sinusoïde la plus proche (moindres carrés) et indique si la courbe n'en est pas une (R²).
-- Formule affichée sous les formes sinus **et** cosinus, axe des x en unités ou en multiples de π, thème clair/sombre.
+| Outil | Dossier |
+|---|---|
+| Fonctions sinusoïdales : `y = A·sin(ωx − φ) + D`, curseurs, saisie libre, ajustement automatique | [`sinusoides/`](sinusoides/) |
 
-## Lancer
+## Lancer en local
 
-Aucune installation : ce sont des fichiers statiques (math.js, KaTeX et Plotly viennent d'un CDN).
+Fichiers statiques, sans installation (math.js, KaTeX et Plotly viennent d'un CDN).
 Les modules ES exigent un serveur local, pas `file://` :
 
 ```sh
@@ -17,11 +17,11 @@ python3 -m http.server 8000
 # puis ouvrir http://localhost:8000
 ```
 
-Déploiement : GitHub Pages sur la branche `main`, dossier racine.
+Chaque `git push` sur `main` met le site à jour (GitHub Pages, racine du dépôt).
 
 ## Tests
 
-La partie mathématique (`src/model.js`, `src/ticks.js`) n'a aucune dépendance et se teste avec Node ≥ 20 :
+La partie mathématique n'a aucune dépendance et se teste avec Node ≥ 20 :
 
 ```sh
 node --test
@@ -29,10 +29,23 @@ node --test
 
 ## Structure
 
-| Fichier | Rôle |
-|---|---|
-| `src/model.js` | Évaluation, ajustement (balayage de ω + section dorée, puis moindres carrés pour A, φ, D), période et pic |
-| `src/ticks.js` | Graduations en multiples de π |
-| `src/parser.js` | Saisie utilisateur → fonction, via math.js avec liste blanche (pas d'`eval`) |
-| `src/app.js` | Interface : contrôles, graphique Plotly, formules KaTeX |
-| `src/style.css` | Mise en page et thèmes (variables CSS) |
+```
+index.html          page d'accueil : la liste des outils
+shared/
+  theme.css         couleurs (variables CSS), thèmes clair/sombre, composants communs
+  theme.js          bouton de thème
+  ticks.js          graduations en multiples de π
+  parser.js         saisie utilisateur → fonction de x (math.js, liste blanche, pas d'eval)
+sinusoides/
+  index.html, style.css, app.js
+  model.js          évaluation et ajustement d'une sinusoïde
+tests/
+```
+
+## Ajouter un outil
+
+1. Créer un dossier `<outil>/` avec son `index.html`, en reprenant l'en-tête de `sinusoides/index.html`
+   (lien « Labo maths », bouton de thème, script anti-flash dans `<head>`).
+2. Importer ce qui sert depuis `../shared/` ; mettre dans `shared/` tout ce qu'un deuxième outil réutiliserait.
+3. Ajouter une carte dans `index.html` et une ligne dans le tableau ci-dessus.
+4. Mettre la logique mathématique dans un module sans DOM et la tester dans `tests/`.

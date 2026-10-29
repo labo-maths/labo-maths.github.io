@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   linspace, normalizeAngle, evaluateSinusoid, fitSinusoid, cosPhase, derived,
-} from "../src/model.js";
-import { piLabel, piTicks } from "../src/ticks.js";
+} from "../sinusoides/model.js";
+import { piLabel, piTicks } from "../shared/ticks.js";
 
 const xs = linspace(-10, 10, 1000);
 const close = (a, b, tol = 1e-3) =>

@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fonctions sinusoïdales</title>
-  <meta name="description" content="Explorer y = A·sin(ωx − φ) + D : curseurs, saisie libre et ajustement automatique.">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
-  <link rel="stylesheet" href="src/style.css">
+  <title>Labo maths</title>
+  <meta name="description" content="Outils interactifs pour comprendre les mathématiques en les manipulant.">
+  <link rel="stylesheet" href="shared/theme.css">
   <script>
-    // Apply the saved theme before first paint to avoid a flash.
     try {
       const t = localStorage.getItem("theme");
       if (t) document.documentElement.dataset.theme = t;
@@ -17,104 +15,34 @@
 </head>
 <body>
   <header class="topbar">
-    <h1>Fonctions sinusoïdales</h1>
+    <h1>Labo maths</h1>
     <button id="theme-toggle" class="ghost" type="button" aria-label="Changer de thème">Thème</button>
   </header>
 
-  <main class="layout">
-    <aside class="panel controls">
-      <div class="tabs" role="tablist">
-        <button role="tab" id="tab-sliders" aria-selected="true" data-mode="sliders">Curseurs</button>
-        <button role="tab" id="tab-free" aria-selected="false" data-mode="free">Saisie libre</button>
-      </div>
+  <main class="home">
+    <p class="intro">Des outils interactifs pour comprendre les mathématiques en les manipulant :
+      on fait varier les paramètres et on voit tout de suite l'effet sur la courbe.</p>
 
-      <section id="mode-sliders">
-        <p class="model" data-tex="y = A\sin(\omega x - \varphi) + D"></p>
-        <div class="slider">
-          <label for="A">Amplitude <span data-tex="A"></span></label>
-          <output for="A" id="A-out"></output>
-          <input type="range" id="A" min="0.1" max="5" step="0.1" value="1">
-        </div>
-        <div class="slider">
-          <label for="omega">Pulsation <span data-tex="\omega"></span></label>
-          <output for="omega" id="omega-out"></output>
-          <input type="range" id="omega" min="0.1" max="10" step="0.1" value="1">
-        </div>
-        <div class="slider">
-          <label for="phi">Déphasage <span data-tex="\varphi"></span></label>
-          <output for="phi" id="phi-out"></output>
-          <input type="range" id="phi" min="-6.28" max="6.28" step="0.01" value="0">
-        </div>
-        <div class="slider">
-          <label for="D">Décalage vertical <span data-tex="D"></span></label>
-          <output for="D" id="D-out"></output>
-          <input type="range" id="D" min="-5" max="5" step="0.1" value="0">
-        </div>
-        <button id="reset" class="ghost" type="button">Réinitialiser</button>
-      </section>
-
-      <section id="mode-free" hidden>
-        <label for="expr" class="field-label">f(x) =</label>
-        <input id="expr" type="text" spellcheck="false" autocomplete="off" placeholder="2 sin(3x - pi/4) + 1">
-        <p id="expr-error" class="error" role="status"></p>
-        <p class="hint">Exemples :</p>
-        <div class="chips">
-          <button type="button" data-expr="cos(x)">cos(x)</button>
-          <button type="button" data-expr="2 sin(3x - pi/4) + 1">2 sin(3x − π/4) + 1</button>
-          <button type="button" data-expr="sin(x) + cos(x)">sin(x) + cos(x)</button>
-          <button type="button" data-expr="sin(x)^2">sin²(x)</button>
-          <button type="button" data-expr="x^2 / 10">x² / 10</button>
-        </div>
-      </section>
-
-      <fieldset class="options">
-        <legend>Affichage</legend>
-        <label class="row">Axe des x
-          <select id="axis">
-            <option value="units">Unités</option>
-            <option value="radians">Multiples de π</option>
-          </select>
-        </label>
-        <label class="check"><input type="checkbox" id="show-midline" checked> Ligne médiane <span data-tex="y = D"></span></label>
-        <label class="check"><input type="checkbox" id="show-bounds" checked> Bornes <span data-tex="D \pm A"></span></label>
-        <label class="check"><input type="checkbox" id="show-period" checked> Pic et période <span data-tex="T"></span></label>
-      </fieldset>
-    </aside>
-
-    <section class="main">
-      <div class="panel plot-panel">
-        <div id="plot" aria-label="Graphique de la fonction"></div>
-      </div>
-
-      <div class="panel results">
-        <h2 id="results-title">Formule</h2>
-        <p id="formula" class="formula"></p>
-        <p id="formula-cos" class="formula secondary"></p>
-        <dl id="values" class="values"></dl>
-        <p id="fit-note" class="note" role="status"></p>
-      </div>
-
-      <details class="panel method">
-        <summary>Méthode : retrouver A, ω, φ et D sur un graphique</summary>
-        <ol>
-          <li>Repérer le maximum et le minimum de la courbe.
-            <p data-tex="A = \dfrac{y_{\max} - y_{\min}}{2} \qquad D = \dfrac{y_{\max} + y_{\min}}{2}" data-display></p>
-          </li>
-          <li>Mesurer la période <span data-tex="T"></span>, la distance entre deux pics successifs.
-            <p data-tex="\omega = \dfrac{2\pi}{T}" data-display></p>
-          </li>
-          <li>Prendre l'abscisse <span data-tex="x_p"></span> d'un pic : à cet endroit <span data-tex="\omega x_p - \varphi = \dfrac{\pi}{2}"></span>, donc
-            <p data-tex="\varphi = \omega x_p - \dfrac{\pi}{2}" data-display></p>
-          </li>
-          <li>Forme cosinus équivalente : <span data-tex="A\sin(\omega x - \varphi) = A\cos\!\left(\omega x - \left(\varphi + \tfrac{\pi}{2}\right)\right)"></span></li>
-        </ol>
-      </details>
-    </section>
+    <!-- One <li> per tool. Each tool lives in its own folder and reuses shared/. -->
+    <ul class="tools">
+      <li>
+        <a class="panel tool-card" href="sinusoides/">
+          <svg viewBox="0 0 200 72" aria-hidden="true">
+            <line x1="0" y1="36" x2="200" y2="36" stroke="var(--midline)" stroke-dasharray="4 4"/>
+            <path d="M0 36 C 16 4, 34 4, 50 36 S 84 68, 100 36 S 134 4, 150 36 S 184 68, 200 36"
+                  fill="none" stroke="var(--curve)" stroke-width="2.5"/>
+          </svg>
+          <h2>Fonctions sinusoïdales</h2>
+          <p><span class="tex">y = A·sin(ωx − φ) + D</span> : curseurs, saisie libre
+            et ajustement automatique d'une sinusoïde.</p>
+        </a>
+      </li>
+    </ul>
   </main>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.2.0/math.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
-  <script type="module" src="src/app.js"></script>
+  <script type="module">
+    import { initTheme } from "./shared/theme.js";
+    initTheme(document.getElementById("theme-toggle"));
+  </script>
 </body>
 </html>

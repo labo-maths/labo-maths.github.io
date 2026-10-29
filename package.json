@@ -1,1 +1,1 @@
-{ "name": "sinusoidal-web", "private": true, "type": "module", "scripts": { "test": "node --test" } }
+{ "name": "labo-maths", "private": true, "type": "module", "scripts": { "test": "node --test" } }
