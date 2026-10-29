@@ -95,7 +95,7 @@ function genRoot(rng) {
     steps.push(step(`${a}^x = ${q === 2 ? `\\sqrt{${a}^{${m}}}` : `\\sqrt[${q}]{${a}^{${m}}}`}`, powerReason(a, m, `${inside}`)));
   }
   steps.push(
-    step(`${a}^x = ${m > 1 ? `(${a}^{${m}})` : a}^{\\frac{1}{${q}}}`, `car $\\sqrt[n]{b} = b^{\\frac{1}{n}}$${q === 2 ? " (et $\\sqrt{b} = b^{\\frac{1}{2}}$)" : ""}.`),
+    step(`${a}^x = ${m > 1 ? `(${a}^{${m}})` : a}^{\\frac{1}{${q}}}`, `car $\\sqrt[n]{b} = b^{1/n}$${q === 2 ? " (et $\\sqrt{b} = b^{1/2}$)" : ""}.`),
     step(`${a}^x = ${a}^{${fracTex(x)}}`, m > 1 ? "car $(a^n)^p = a^{n \\times p}$." : ""),
     step(`x = ${fracTex(x)}`, SAME_BASE),
     step(setTex([fracTex(x)])),
@@ -104,7 +104,7 @@ function genRoot(rng) {
     type: "root",
     statement: `${a}^x = ${root}`,
     hints: [
-      "Une racine peut s'écrire comme une puissance : $\\sqrt[n]{b} = b^{\\frac{1}{n}}$.",
+      "Une racine peut s'écrire comme une puissance : $\\sqrt[n]{b} = b^{1/n}$.",
       m > 1 ? `Écris d'abord $${inside}$ comme une puissance de $${a}$.` : `Le nombre sous la racine est déjà $${a}$ lui-même.`,
       "Puis utilise $(a^n)^p = a^{n \\times p}$ et égale les exposants.",
     ],
@@ -353,9 +353,25 @@ function genQuadratic(rng) {
   };
 }
 
-// ---------- logarithmes (au-delà du cours) ----------
+// ---------- logarithmes ----------
 
-const logTex = (a) => (a === 10 ? "\\log" : `\\log_{${a}}`);
+const logTex = (a) => (a === 10 ? "\\log" : a === "e" ? "\\ln" : `\\log_{${a}}`);
+/** log² x is written \log^2 x (base 10) or \log_2^2 x. */
+const logPowTex = (a, n) => (n === 1 ? logTex(a) : a === 10 ? `\\log^{${n}}` : `\\log_{${a}}^{${n}}`);
+
+/** x^2 + Bx + C, terms with a zero coefficient left out. */
+const quadTex = (B, C, v = "x") => `${v}^2${B ? termTex(B, v) : ""}${C ? termTex(C, "") : ""}`;
+
+/** Δ and the two roots of v² + Bv + C = 0, for integer roots r1 > r2. */
+function deltaSteps(B, C, r1, r2, v = "x") {
+  const D = B * B - 4 * C;
+  return [
+    step(`\\Delta = (${B})^2 - 4 \\cdot 1 \\cdot (${C}) = ${D}`, "On calcule le discriminant."),
+    step(`${v} = \\frac{${-B} \\pm ${Math.sqrt(D)}}{2} \\;\\Rightarrow\\; ${v}_1 = ${r1}, \\; ${v}_2 = ${r2}`, "$\\Delta > 0$ : deux racines."),
+  ];
+}
+
+const CE_NOTE = "Un logarithme n'existe que pour un nombre strictement positif : on commence toujours par les conditions d'existence (C.E.).";
 
 function genLogEval(rng) {
   const a = pick(rng, [2, 3, 5, 10]);
@@ -446,6 +462,154 @@ function genLogEq(rng) {
   };
 }
 
+/** C.E., then the rules of logarithms, then a second-degree equation with one root outside the domain. */
+function genLogEqRules(rng) {
+  return rng() < 0.5 ? logSumEq(rng) : logDoubleEq(rng);
+}
+
+// log_a(x + p) + log_a(x + q) = k. Built from a^k = u·v (u < v) and the solution x0;
+// the other root x1 = -(p + q) - x0 gives x1 + p = -v < 0, so the C.E. always rejects it.
+function logSumEq(rng) {
+  const a = pick(rng, [2, 3, 10]);
+  const k = int(rng, ...{ 2: [3, 5], 3: [2, 3], 10: [1, 2] }[a]);
+  const N = a ** k;
+  const pairs = [];
+  for (let u = 1; u * u < N; u++) if (N % u === 0) pairs.push([u, N / u]);
+  const [u, v] = pick(rng, pairs);
+  const x0 = int(rng, -3, 5);
+  const p = u - x0, q = v - x0;
+  const x1 = -(p + q) - x0;
+  const L = logTex(a);
+  const A = linTex(1, p), B = linTex(1, q);
+  const statement = `${L}(${A}) + ${L}(${B}) = ${k}`;
+  const C0 = p * q;
+  const steps = [
+    step(statement, CE_NOTE),
+    step(`\\text{C.E. : } ${A} > 0 \\text{ et } ${B} > 0 \\;\\Leftrightarrow\\; x > ${-p}`,
+      `Les deux arguments doivent être positifs : on garde la condition la plus forte. Domaine : $]${-p} \\,;\\, +\\infty[$.`),
+    step(`${L}\\big[(${A})(${B})\\big] = ${k}`, "car $\\log_a x + \\log_a y = \\log_a (x \\cdot y)$."),
+    step(`${L}\\big[(${A})(${B})\\big] = ${L} ${a}^{${k}}`, `On écrit le nombre comme un logarithme de même base : $${k} = ${L} ${a}^{${k}}$.`),
+    step(`(${A})(${B}) = ${N}`, "$\\log_a A = \\log_a B \\Leftrightarrow A = B$ : on enlève les logarithmes."),
+    step(`${quadTex(p + q, C0)} = ${N}`, "On développe."),
+    step(`${quadTex(p + q, C0 - N)} = 0`, "On ramène tout dans le membre de gauche."),
+    ...deltaSteps(p + q, C0 - N, x0, x1),
+    step(`x_1 = ${x0} > ${-p} \\;\\checkmark \\qquad x_2 = ${x1} \\leq ${-p} \\;\\text{: rejetée}`,
+      `On vérifie les C.E. : avec $x = ${x1}$, $${A}$ vaudrait $${x1 + p}$, et le logarithme d'un nombre négatif n'existe pas.`),
+    step(setTex([x0])),
+  ];
+  return {
+    type: "logEqRules",
+    statement,
+    hints: [
+      `Commence par les conditions d'existence : $${A} > 0$ et $${B} > 0$.`,
+      `Regroupe les deux logarithmes avec $\\log_a x + \\log_a y = \\log_a (x \\cdot y)$, puis écris $${k} = ${L} ${a}^{${k}}$.`,
+      "Développe, résous l'équation du second degré, puis rejette la solution qui ne respecte pas les C.E.",
+    ],
+    steps,
+    solutions: [x0],
+    residual: (x) => [(Math.log(x + p) + Math.log(x + q)) / Math.log(a), k],
+  };
+}
+
+// 2 log x = log(bx + c): x² = bx + c with roots x0 > 0 and x1 < 0; x1 breaks the C.E. x > 0.
+function logDoubleEq(rng) {
+  const a = pick(rng, [2, 3, 10, "e"]);
+  const x0 = int(rng, 1, 6), x1 = -int(rng, 1, 5);
+  const b = x0 + x1, c = -x0 * x1;
+  if (b === 0) return logDoubleEq(rng);
+  const L = logTex(a);
+  const lin = linTex(b, c);
+  const statement = `2 ${L} x = ${L}(${lin})`;
+  const ce = b > 0
+    ? step(`\\text{C.E. : } x > 0 \\text{ et } ${lin} > 0 \\;\\Leftrightarrow\\; x > 0`,
+      `$${lin} > 0 \\Leftrightarrow x > ${fracTex(fr(-c, b))}$ : la condition $x > 0$ est la plus forte.`)
+    : step(`\\text{C.E. : } x > 0 \\text{ et } ${lin} > 0 \\;\\Leftrightarrow\\; 0 < x < ${fracTex(fr(c, -b))}`,
+      `$${lin} > 0 \\Leftrightarrow x < ${fracTex(fr(c, -b))}$ : les deux conditions ensemble.`);
+  const steps = [
+    step(statement, CE_NOTE),
+    ce,
+    step(`${L}(x^2) = ${L}(${lin})`, "car $r \\log_a x = \\log_a x^r$."),
+    step(`x^2 = ${lin}`, "$\\log_a A = \\log_a B \\Leftrightarrow A = B$ : on enlève les logarithmes."),
+    step(`${quadTex(-b, -c)} = 0`, "On ramène tout dans le membre de gauche."),
+    ...deltaSteps(-b, -c, x0, x1),
+    step(`x_1 = ${x0} \\;\\checkmark \\qquad x_2 = ${x1} \\;\\text{: rejetée}`,
+      `On vérifie les C.E. : $${x1} < 0$ et $${L} x$ n'existe pas pour $x \\leq 0$.`),
+    step(setTex([x0])),
+  ];
+  return {
+    type: "logEqRules",
+    statement,
+    hints: [
+      `Commence par les conditions d'existence : $x > 0$ et $${lin} > 0$.`,
+      `Utilise $r \\log_a x = \\log_a x^r$ pour écrire $2 ${L} x = ${L}(x^2)$.`,
+      "Deux logarithmes de même base sont égaux si leurs arguments le sont. Résous, puis rejette la solution hors des C.E.",
+    ],
+    steps,
+    solutions: [x0],
+    residual: (x) => [2 * Math.log(x), Math.log(b * x + c)],
+  };
+}
+
+/** log² x + B log x + C = 0 (Y = log x), or log⁴ x + B log² x + C = 0 (Y = log² x). */
+function genLogQuadratic(rng) {
+  const a = pick(rng, [2, 3, 10]);
+  const square = rng() < 0.3;
+  let Y1, Y2;
+  if (square) {
+    [Y1, Y2] = [pick(rng, [1, 4, 9]), pick(rng, [1, 4, 9])];
+  } else {
+    const [lo, hi] = { 2: [-3, 4], 3: [-2, 3], 10: [-2, 3] }[a];
+    [Y1, Y2] = [int(rng, lo, hi), int(rng, lo, hi)];
+  }
+  if (Y1 === Y2) return genLogQuadratic(rng);
+  if (Y1 < Y2) [Y1, Y2] = [Y2, Y1];
+  const B = -(Y1 + Y2), C = Y1 * Y2;
+  const [hi, lo] = square ? [4, 2] : [2, 1];
+  const statement = `${logPowTex(a, hi)} x${B ? termTex(B, `${logPowTex(a, lo)} x`).replace(" \\cdot", "") : ""}${C ? termTex(C, "") : ""} = 0`;
+  const Lx = `${logTex(a)} x`;
+  const Ytex = `${logPowTex(a, lo)} x`;
+  const xTex = (k) => valueTex(pow(fr(a), k), a);
+  const steps = [
+    step(statement, `${CE_NOTE} Notation : $${logPowTex(a, 2)} x = (${Lx})^2$, à ne pas confondre avec $${logTex(a)} x^2$.`),
+    step(`\\text{C.E. : } x > 0`, "Domaine : $]0 \\,;\\, +\\infty[$."),
+    step(`${quadTex(B, C, "Y")} = 0`, `On pose $Y = ${Ytex}$ : l'équation devient du second degré.`),
+    ...deltaSteps(B, C, Y1, Y2, "Y"),
+  ];
+  const ks = [];
+  for (const Y of [Y1, Y2]) {
+    if (square) {
+      const m = Math.sqrt(Y);
+      steps.push(step(`${Ytex} = ${Y} \\;\\Leftrightarrow\\; ${Lx} = ${m} \\text{ ou } ${Lx} = -${m} \\;\\Leftrightarrow\\; x = ${xTex(m)} \\text{ ou } x = ${xTex(-m)}`,
+        `On revient à $Y = ${Ytex}$, puis $${logTex(a)} x = y \\Leftrightarrow x = ${a}^y$.`));
+      ks.push(m, -m);
+    } else {
+      steps.push(step(`${Lx} = ${Y} \\;\\Leftrightarrow\\; x = ${a}^{${Y}} = ${xTex(Y)}`,
+        `On revient à $Y = ${Lx}$ : $\\log_a x = y \\Leftrightarrow x = a^y$.`));
+      ks.push(Y);
+    }
+  }
+  ks.sort((p, q) => p - q);
+  steps.push(
+    step(`x > 0 \\;\\checkmark`, "Une puissance de la base est toujours strictement positive : toutes les solutions respectent les C.E."),
+    step(setTex(ks.map(xTex))),
+  );
+  return {
+    type: "logQuadratic",
+    statement,
+    hints: [
+      `Condition d'existence : $x > 0$. Puis remarque que $${logPowTex(a, hi)} x = (${Ytex})^2$.`,
+      `Pose $Y = ${Ytex}$ et résous l'équation en $Y$ avec $\\Delta$.`,
+      `Reviens à $x$ : $${Lx} = y \\Leftrightarrow x = ${a}^y$.${square ? " Attention, $Y$ est un carré : deux valeurs de $\\log x$ pour chaque $Y$." : ""}`,
+    ],
+    steps,
+    solutions: ks.map((k) => value(pow(fr(a), k))),
+    residual: (x) => {
+      const l = Math.log(x) / Math.log(a);
+      return [l ** hi + B * l ** lo + C, 0];
+    },
+  };
+}
+
 // ---------- catalogue ----------
 
 export const TYPES = {
@@ -460,6 +624,8 @@ export const TYPES = {
   logEval: { label: "Calculer un logarithme", level: 4, gen: genLogEval },
   logSolve: { label: "aˣ = c avec ln", level: 4, gen: genLogSolve },
   logEq: { label: "Équation logarithmique", level: 4, gen: genLogEq },
+  logEqRules: { label: "Équation log : C.E. et règles", level: 4, gen: genLogEqRules },
+  logQuadratic: { label: "Équation log : Y = log x", level: 4, gen: genLogQuadratic },
 };
 
 export const LEVELS = [

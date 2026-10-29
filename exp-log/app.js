@@ -61,6 +61,8 @@ for (const btn of document.querySelectorAll("[data-train]")) {
   });
 }
 
+document.getElementById("cheat-print").addEventListener("click", () => window.print());
+
 // Calculator beside the exercises; shown by default, the choice is remembered.
 function initExerciseCalculator() {
   const panel = document.getElementById("calc");

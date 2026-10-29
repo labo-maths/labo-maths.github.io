@@ -207,14 +207,58 @@ function renderExp() {
 
 // ───────────── 4. Exemples résolus ─────────────
 
+// One full-width panel per group of methods, shown under the row of the card whose
+// "Voir un exemple" was clicked; a second click, ✕ or Échap closes it.
 function initExamples() {
-  for (const details of document.querySelectorAll("details[data-example]")) {
-    details.addEventListener("toggle", () => {
-      const list = details.querySelector(".steps");
-      if (!details.open || list.childElementCount) return;
-      const ex = TYPES[details.dataset.example].gen(seeded(11));
-      for (const s of ex.steps) appendStep(list, s);
+  for (const grid of document.querySelectorAll(".methods")) {
+    const panel = document.createElement("div");
+    panel.className = "example-panel";
+    panel.hidden = true;
+    panel.innerHTML = `<div class="example-head"><p class="kicker">Exemple résolu</p><h4></h4>
+      <button type="button" class="ghost link" aria-label="Fermer l'exemple">✕</button></div><ol class="steps"></ol>`;
+    const title = panel.querySelector("h4");
+    const list = panel.querySelector(".steps");
+    let current = null;
+
+    // Insert the panel after the last card on the active card's row, so it spans the grid right below it.
+    const place = () => {
+      if (!current) return;
+      const card = current.closest(".method");
+      const cards = [...grid.querySelectorAll(".method")];
+      const rowEnd = cards.filter((c) => c.offsetTop === card.offsetTop).at(-1);
+      if (panel.previousElementSibling !== rowEnd) rowEnd.after(panel);
+    };
+    const close = () => {
+      if (!current) return;
+      current.setAttribute("aria-expanded", "false");
+      current.closest(".method").classList.remove("active");
+      current = null;
+      panel.hidden = true;
+    };
+    const open = (btn) => {
+      close();
+      current = btn;
+      btn.setAttribute("aria-expanded", "true");
+      const card = btn.closest(".method");
+      card.classList.add("active");
+      title.textContent = card.querySelector("h3").textContent;
+      list.replaceChildren();
+      for (const s of TYPES[btn.dataset.example].gen(seeded(11)).steps) appendStep(list, s);
+      panel.hidden = false;
+      place();
+      panel.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    };
+
+    for (const btn of grid.querySelectorAll("[data-example]")) {
+      btn.addEventListener("click", () => (btn === current ? close() : open(btn)));
+    }
+    panel.querySelector(".example-head button").addEventListener("click", () => {
+      const btn = current;
+      close();
+      btn.focus();
     });
+    panel.addEventListener("keydown", (e) => { if (e.key === "Escape") panel.querySelector(".example-head button").click(); });
+    new ResizeObserver(place).observe(grid);
   }
 }
 

@@ -38,7 +38,7 @@ for (const [id, { gen }] of Object.entries(TYPES)) {
         const scale = Math.max(1, Math.abs(lhs), Math.abs(rhs));
         assert.ok(Math.abs(lhs - rhs) <= 1e-9 * scale, `${label}: x = ${x} gives ${lhs} ≠ ${rhs}`);
       }
-      if (id !== "quadratic") assert.equal(ex.solutions.length, 1, label);
+      if (!["quadratic", "logQuadratic"].includes(id)) assert.equal(ex.solutions.length, 1, label);
       assert.ok(checkAnswer(ex, ex.solutions.join(" ; ")).ok, `${label}: own answer rejected`);
     }
   });

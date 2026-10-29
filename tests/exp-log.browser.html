@@ -109,6 +109,21 @@ document.getElementById("f").addEventListener("load", () => {
     type("10^400"); enter();
     ok(result.classList.contains("error") && calc.querySelector(".calc-use").hidden, "overflow → error, no 'use' button");
     ok(katexErrors(calc) === 0, "no TeX error in the calculator");
+    // Fixed-size screen: nothing typed may resize it or move the keypad.
+    const section = $("exercices"), wasHidden = section.hidden;
+    section.hidden = false;
+    const layout = () => {
+      const s = calc.querySelector(".calc-screen").getBoundingClientRect();
+      return `${s.width}×${s.height} keys@${calc.querySelector(".calc-keys").getBoundingClientRect().top}`;
+    };
+    key("C").click();
+    const before = layout(), moved = [];
+    for (const text of ["1", "123456789123456789 × 987654321987654321 + 2/3", "((1/2)/(3/4))/((5/6)/(7/8)) + √(2/3)", "e^(1/2)^(1/3)", "2 +", "ln(-1)"]) {
+      type(text); enter();
+      if (layout() !== before) moved.push(`${text} → ${layout()}`);
+    }
+    ok(moved.length === 0, `screen and keypad do not move (${before})` + (moved.length ? " → " + moved.join(" | ") : ""));
+    section.hidden = wasHidden;
     $("calc-toggle").click();
     ok(calc.hidden && $("calc-toggle").getAttribute("aria-pressed") === "false", "toggle hides the calculator");
     $("calc-toggle").click();
@@ -158,9 +173,20 @@ document.getElementById("f").addEventListener("load", () => {
   });
 
   step("worked examples", () => {
-    for (const det of d.querySelectorAll("details[data-example]")) {
-      det.open = true; fire(det, "toggle");
+    const counts = [];
+    for (const btn of d.querySelectorAll("button[data-example]")) {
+      const chapter = btn.closest(".chapter");
+      chapter.hidden = false; // the panel is placed by row, which needs a laid-out grid
+      btn.click();
+      const panel = btn.closest(".methods").querySelector(".example-panel");
+      counts.push(panel.querySelectorAll(".steps li").length);
+      ok(!panel.hidden && btn.getAttribute("aria-expanded") === "true", "example " + btn.dataset.example + " opens its panel");
+      chapter.hidden = chapter !== d.querySelector(".chapter");
     }
+    ok(counts.every((n) => n >= 3), "worked examples filled (" + counts.join(", ") + ")");
+    const btn = d.querySelector('button[data-example="transform"]');
+    btn.click(); btn.click();
+    ok(btn.closest(".methods").querySelector(".example-panel").hidden, "second click closes the example");
   });
 
   step("log converter", () => {
@@ -170,6 +196,12 @@ document.getElementById("f").addEventListener("load", () => {
     set("2", "-1"); ok($("log-result").classList.contains("warn"), "log of negative → warning");
     set("1", "5"); ok($("log-result").classList.contains("warn"), "base 1 → warning");
     set("2", "5"); ok(/2,3219/.test($("log-result").textContent), "log₂ 5 ≈ 2,3219");
+  });
+
+  step("logarithms, log equations and pense-bête", () => {
+    for (const id of ["logarithmes", "equations-log", "pense-bete"]) ok(katexErrors($(id)) === 0, "no TeX error in #" + id);
+    ok($("pense-bete").querySelectorAll(".cheat-card").length >= 8, "pense-bête cards");
+    ok(d.querySelector('[data-train="logEqRules"]') && d.querySelector('[data-train="logQuadratic"]'), "train buttons for the new log equations");
   });
 
   step("theme toggle", () => {
@@ -195,10 +227,6 @@ document.getElementById("f").addEventListener("load", () => {
     ok(d.querySelector('.chapters a[aria-current="page"]').hash === "#exercices", "chapter bar follows");
   });
 
-  // details toggle events are async: check them last, after a tick, still before the parent load event? No —
-  // they were dispatched synchronously above, so the steps are already there.
-  const examples = [...d.querySelectorAll("details[data-example] .steps")];
-  ok(examples.every((ol) => ol.children.length >= 3), "worked examples filled (" + examples.map((o) => o.children.length).join(", ") + ")");
   ok(katexErrors() === 0, "no KaTeX error anywhere on the page (" + katexErrors() + ")");
   ok(errors.length === 0, "no JavaScript errors" + (errors.length ? ": " + errors.join(" | ") : ""));
 
