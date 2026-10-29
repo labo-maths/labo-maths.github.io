@@ -1,35 +1,91 @@
 /* Exponentielles et logarithmes: course layout, labs, trainer. Shared tokens live in shared/theme.css. */
 
 .course {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 24px;
-  max-width: 1200px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0 16px 48px;
 }
 
-/* Chapter navigation */
-.chapters { position: sticky; top: 16px; align-self: start; }
-.chapters ol { list-style: none; margin: 0; padding: 0; counter-reset: ch; display: flex; flex-direction: column; gap: 2px; }
+/* Chapter bar: one numbered tab per chapter, the current one highlighted */
+.chapters {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  padding: 12px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.chapters ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: ch;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
 .chapters li { counter-increment: ch; }
 .chapters a {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.92rem;
   color: var(--muted);
   text-decoration: none;
+  white-space: nowrap;
 }
-.chapters a::before { content: counter(ch); font-variant-numeric: tabular-nums; opacity: 0.7; }
-.chapters a:hover { color: var(--fg); background: var(--panel); }
+.chapters a::before {
+  content: counter(ch);
+  display: inline-grid;
+  place-items: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+}
+.chapters a:hover { color: var(--fg); border-color: var(--border); }
 .chapters a[aria-current] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.chapters a[aria-current]::before { background: var(--accent); border-color: var(--accent); color: var(--panel); }
 
-.chapters-content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.chapter { scroll-margin-top: 16px; }
-.chapter h2 { font-size: 1.35rem; margin: 0 0 12px; }
-.chapter h3 { font-size: 1.05rem; margin: 20px 0 8px; }
-.chapter p { max-width: 72ch; }
+.chapter { padding: 32px 40px; line-height: 1.65; }
+.chapter[hidden] { display: none; }
+.chapter h2 { font-size: 1.6rem; margin: 4px 0 20px; line-height: 1.3; }
+.chapter h3 { font-size: 1.15rem; margin: 40px 0 12px; padding-top: 24px; border-top: 1px solid var(--border); }
+.chapter p { max-width: 72ch; margin: 0 0 14px; }
+.chapter .formula-box, .chapter .note-box { margin: 18px 0; }
+
+/* Previous / next chapter */
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--fg);
+  text-decoration: none;
+}
+.pager-link small { color: var(--muted); }
+.pager-link span { color: var(--accent); font-weight: 600; }
+.pager-link:hover { border-color: var(--accent); background: var(--accent-soft); }
+.pager-link.next { text-align: right; grid-column: 2; }
 .kicker { margin: 0; color: var(--accent); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
 .formula-box {
@@ -48,8 +104,8 @@
 .lab {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
-  gap: 16px;
-  margin: 16px 0;
+  gap: 24px;
+  margin: 24px 0;
   align-items: start;
 }
 .lab-controls { display: flex; flex-direction: column; gap: 12px; }
@@ -101,7 +157,7 @@
 /* Methods */
 .methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
 .method { background: var(--bg); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-.method h3 { margin: 0; }
+.method h3 { margin: 0; padding-top: 0; border-top: 0; }
 .method p { margin: 0; }
 .method .ghost { align-self: flex-start; }
 .example summary { cursor: pointer; color: var(--accent); }
@@ -155,10 +211,13 @@
 @media (prefers-reduced-motion: reduce) { .steps li { animation: none; } }
 
 @media (max-width: 900px) {
-  .course { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; }
-  .chapters { position: sticky; top: 0; z-index: 2; background: var(--bg); margin: 0 -16px; padding: 8px 16px; }
-  .chapters ol { flex-direction: row; overflow-x: auto; }
-  .chapters a { white-space: nowrap; }
+  .chapter { padding: 20px 16px; }
+  .chapters { margin: 0 -16px 12px; padding: 8px 16px; }
+  .chapters a:not([aria-current]) { font-size: 0; gap: 0; padding: 6px; }
+  .chapters a:not([aria-current])::before { font-size: 0.85rem; }
+  .chapters ol { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; }
+  .chapters li { flex: 0 0 auto; }
+  .pager { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .lab, .chess-lab { grid-template-columns: minmax(0, 1fr); }
   .trainer-bar select { max-width: 100%; }
   .chessboard { max-width: 320px; }

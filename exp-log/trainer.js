@@ -141,7 +141,6 @@ export function initTrainer() {
     train(choice) {
       $("ex-choice").value = choice;
       newExercise({ focus: false });
-      $("exercices").scrollIntoView({ behavior: "smooth", block: "start" });
       $("ex-answer").focus({ preventScroll: true });
     },
   };

@@ -99,6 +99,7 @@ button, input, select { font: inherit; color: inherit; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .chips button, .ghost {
+  white-space: nowrap;
   border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 999px;

@@ -140,9 +140,20 @@ document.getElementById("f").addEventListener("load", () => {
     $("theme-toggle").click();
   });
 
+  step("chapter pages", () => {
+    const chapters = [...d.querySelectorAll(".chapter")];
+    ok(chapters.filter((c) => !c.hidden).length === 1 && !chapters[0].hidden, "only chapter 1 shown at start");
+    const pagers = chapters.map((c) => [...c.querySelectorAll(".pager a")].map((a) => a.hash.slice(1)));
+    const expected = chapters.map((c, i) => [chapters[i - 1]?.id, chapters[i + 1]?.id].filter(Boolean));
+    ok(JSON.stringify(pagers) === JSON.stringify(expected), "prev/next links chain the chapters: " + JSON.stringify(pagers));
+    ok(d.querySelector('.chapters a[aria-current="page"]').hash === "#reciproques", "chapter bar marks chapter 1");
+  });
+
   step("train buttons", () => {
     d.querySelector('[data-train="quadratic"]').click();
     ok($("ex-choice").value === "quadratic", "'S'entraîner' selects the type");
+    ok(!$("exercices").hidden && $("equations").hidden, "'S'entraîner' opens the Exercices page");
+    ok(d.querySelector('.chapters a[aria-current="page"]').hash === "#exercices", "chapter bar follows");
   });
 
   // details toggle events are async: check them last, after a tick, still before the parent load event? No —
