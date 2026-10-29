@@ -1,8 +1,6 @@
 // x-axis ticks at simple multiples of π (π/16 … π), labelled as fractions.
 
-function gcd(a, b) {
-  return b === 0 ? Math.abs(a) : gcd(b, a % b);
-}
+import { gcd } from "./fraction.js";
 
 /** Label for (num/den)·π, e.g. "0", "π", "−π", "3π/4", "−π/2". */
 export function piLabel(num, den) {

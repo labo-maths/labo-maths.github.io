@@ -1,0 +1,167 @@
+/* Exponentielles et logarithmes: course layout, labs, trainer. Shared tokens live in shared/theme.css. */
+
+.course {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Chapter navigation */
+.chapters { position: sticky; top: 16px; align-self: start; }
+.chapters ol { list-style: none; margin: 0; padding: 0; counter-reset: ch; display: flex; flex-direction: column; gap: 2px; }
+.chapters li { counter-increment: ch; }
+.chapters a {
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+}
+.chapters a::before { content: counter(ch); font-variant-numeric: tabular-nums; opacity: 0.7; }
+.chapters a:hover { color: var(--fg); background: var(--panel); }
+.chapters a[aria-current] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+
+.chapters-content { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.chapter { scroll-margin-top: 16px; }
+.chapter h2 { font-size: 1.35rem; margin: 0 0 12px; }
+.chapter h3 { font-size: 1.05rem; margin: 20px 0 8px; }
+.chapter p { max-width: 72ch; }
+.kicker { margin: 0; color: var(--accent); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.formula-box {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: none;
+  overflow-x: auto;
+}
+.formula-box.warn { color: var(--warn); }
+.note-box { border-left: 3px solid var(--accent); padding: 6px 12px; background: var(--accent-soft); border-radius: 0 8px 8px 0; }
+.rules { display: flex; flex-direction: column; gap: 2px; overflow-x: auto; }
+.rules p { margin: 0; max-width: none; }
+
+/* Interactive "labs": controls beside a plot */
+.lab {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 16px;
+  margin: 16px 0;
+  align-items: start;
+}
+.lab-controls { display: flex; flex-direction: column; gap: 12px; }
+.plot { width: 100%; height: 380px; background: var(--bg); border-radius: 8px; }
+
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.row select, .row input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  min-width: 0;
+}
+.converter .row input { width: 8em; }
+
+.pair { margin: 0; overflow-x: auto; }
+.verdict { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--bg); }
+.verdict.ok { color: var(--bounds); }
+.verdict.bad { color: var(--warn); }
+
+/* Chessboard */
+.chess-lab { grid-template-columns: minmax(0, 1fr) minmax(180px, 280px); }
+.chessboard {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  aspect-ratio: 1;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.chessboard div.light { background: var(--panel); }
+.chessboard div.dark { background: var(--bg); }
+.chessboard div.filled {
+  background: color-mix(in srgb, var(--midline) calc(25% + 75% * var(--fill)), var(--panel));
+}
+
+.values { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 0; }
+.values div { background: var(--bg); border-radius: 8px; padding: 6px 10px; }
+.values dt { color: var(--muted); font-size: 0.85em; }
+.values dd { margin: 0; font-weight: 600; overflow-x: auto; }
+
+/* Properties and value table */
+.props ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+.table-wrap { overflow-x: auto; margin-top: 16px; }
+.value-table { border-collapse: collapse; min-width: 100%; }
+.value-table th, .value-table td { border: 1px solid var(--border); padding: 6px 10px; text-align: center; }
+.value-table th { background: var(--bg); }
+
+/* Methods */
+.methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
+.method { background: var(--bg); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.method h3 { margin: 0; }
+.method p { margin: 0; }
+.method .ghost { align-self: flex-start; }
+.example summary { cursor: pointer; color: var(--accent); }
+.example .steps { margin-top: 8px; }
+
+/* Buttons */
+.ghost.link { border-color: transparent; background: none; color: var(--accent); }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px var(--accent-soft); } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+
+/* Trainer */
+.trainer-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.trainer-bar select { max-width: 16em; }
+.score { margin: 0 0 0 auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.exercise { margin-top: 16px; }
+.prompt { color: var(--muted); margin: 0; }
+.statement { font-size: 1.35rem; margin: 4px 0 16px; overflow-x: auto; max-width: none; }
+.field-label { display: block; color: var(--muted); margin-bottom: 4px; font-size: 0.9em; }
+.answer-row { display: flex; gap: 8px; }
+#ex-answer {
+  flex: 1;
+  min-width: 0;
+  max-width: 22em;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+#ex-answer:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.feedback { min-height: 1.5em; margin: 8px 0; }
+.feedback.ok { color: var(--bounds); font-weight: 600; }
+.feedback.bad { color: var(--error); }
+.feedback.warn { color: var(--warn); }
+.helpers { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+
+.hints { margin: 8px 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.hints:empty { display: none; }
+.hints li { background: var(--accent-soft); border-radius: 8px; padding: 6px 10px; }
+.hints li::marker { color: var(--accent); font-weight: 600; }
+
+.steps { margin: 8px 0 0; padding-left: 1.6em; display: flex; flex-direction: column; gap: 10px; }
+.steps:empty { display: none; }
+.steps li { animation: appear 0.25s ease-out; }
+.steps li::marker { color: var(--muted); }
+.step-tex { overflow-x: auto; }
+.step-tex .katex-display { margin: 0.2em 0; text-align: left; }
+.step-note { margin: 0; color: var(--muted); font-size: 0.92em; }
+@keyframes appear { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .steps li { animation: none; } }
+
+@media (max-width: 900px) {
+  .course { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; }
+  .chapters { position: sticky; top: 0; z-index: 2; background: var(--bg); margin: 0 -16px; padding: 8px 16px; }
+  .chapters ol { flex-direction: row; overflow-x: auto; }
+  .chapters a { white-space: nowrap; }
+  .lab, .chess-lab { grid-template-columns: minmax(0, 1fr); }
+  .trainer-bar select { max-width: 100%; }
+  .chessboard { max-width: 320px; }
+  .plot { height: 320px; }
+  .score { margin-left: 0; }
+}

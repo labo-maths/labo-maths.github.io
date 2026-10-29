@@ -1,0 +1,289 @@
+// Interactive parts of chapters 1–5: reciprocal functions, the chessboard,
+// the exponential function, worked examples and the logarithm converter.
+/* global Plotly */
+
+import { fr, pow, value, fracTex, fracText } from "../shared/fraction.js";
+import { renderTex, renderMixed, numTex } from "../shared/tex.js";
+import { themeColors, axis, layout, hline, PLOT_CONFIG } from "../shared/plot.js";
+import { linspace } from "../shared/numeric.js";
+import { TYPES, seeded } from "./exercises.js";
+import { appendStep } from "./trainer.js";
+
+const $ = (id) => document.getElementById(id);
+const nf = (digits = 2) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: digits });
+const fmt = (v, digits = 2) => nf(digits).format(Math.abs(v) < 1e-9 ? 0 : v);
+
+// ───────────── 1. Fonctions réciproques ─────────────
+
+const RECIPROCALS = {
+  cube: { f: (x) => x ** 3, tex: "x^3", inv: "\\sqrt[3]{x}", view: [-4, 4], a: [-1.5, 1.5, 0.1] },
+  temp: { f: (x) => (9 / 5) * x + 32, tex: "\\frac{9}{5}x + 32", inv: "\\frac{5}{9}(x - 32)", view: [-50, 110], a: [-40, 40, 1] },
+  square: { f: (x) => x * x, tex: "x^2", inv: "\\sqrt{x}", view: [-4, 4], a: [-2, 2, 0.1], needsRestriction: true },
+  exp2: { f: (x) => 2 ** x, tex: "2^x", inv: "\\log_2 x", view: [-4, 4], a: [-2, 2, 0.1] },
+};
+
+function renderReciprocal() {
+  const fn = RECIPROCALS[$("recip-fn").value];
+  const restricted = fn.needsRestriction && $("recip-restrict").checked;
+  const isFunction = !fn.needsRestriction || restricted;
+  $("recip-restrict-wrap").hidden = !fn.needsRestriction;
+
+  const slider = $("recip-a");
+  const [aMin, aMax, aStep] = fn.a;
+  slider.min = restricted ? 0 : aMin;
+  slider.max = aMax;
+  slider.step = aStep;
+  const a = Math.min(Math.max(Number(slider.value), Number(slider.min)), aMax);
+  const b = fn.f(a);
+  $("recip-a-out").textContent = fmt(a);
+
+  const c = themeColors();
+  const [lo, hi] = fn.view;
+  const xs = linspace(restricted ? 0 : lo, hi, 400);
+  const ys = xs.map(fn.f);
+  Plotly.react("plot-recip", [
+    { x: [lo, hi], y: [lo, hi], mode: "lines", line: { color: c.muted, width: 1, dash: "dash" }, hoverinfo: "skip" },
+    { x: xs, y: ys, mode: "lines", line: { color: c.curve, width: 2.5 }, name: "f", hovertemplate: "f(%{x:.2f}) = %{y:.2f}<extra></extra>" },
+    { x: ys, y: xs, mode: "lines", line: { color: c.fit, width: 2.5 }, name: "f⁻¹", hovertemplate: "(%{x:.2f} ; %{y:.2f})<extra></extra>" },
+    { x: [a, b], y: [b, a], mode: "lines", line: { color: c.period, width: 1, dash: "dot" }, hoverinfo: "skip" },
+    { x: [a, b], y: [b, a], mode: "markers+text", marker: { color: [c.curve, c.fit], size: 9 },
+      text: ["(a ; b)", "(b ; a)"], textposition: ["top left", "bottom right"], textfont: { color: c.fg }, hoverinfo: "skip" },
+  ], layout(c, {
+    xaxis: axis(c, { range: fn.view }),
+    yaxis: axis(c, { range: fn.view, scaleanchor: "x", scaleratio: 1 }),
+    annotations: [{ x: hi, y: hi, text: "y = x", showarrow: false, xanchor: "right", yanchor: "bottom", font: { color: c.muted } }],
+    uirevision: $("recip-fn").value,
+  }), PLOT_CONFIG);
+
+  renderTex($("recip-pair"), `\\begin{gathered} f(${numTex(a, 2)}) = ${numTex(b, 2)} \\\\ \\Longleftrightarrow\\; f^{-1}(${numTex(b, 2)}) = ${numTex(a, 2)} \\end{gathered}`, true);
+  const verdict = $("recip-verdict");
+  verdict.className = `verdict ${isFunction ? "ok" : "bad"}`;
+  renderMixed(verdict, isFunction
+    ? `✓ $f^{-1}$ est une fonction : $f(x) = ${fn.tex}$ ${restricted ? "sur $[0 \\,;\\, +\\infty[$ " : ""}a pour réciproque $f^{-1}(x) = ${fn.inv}$.`
+    : `✗ La réciproque de $x^2$ n'est pas une fonction : $4$ a deux antécédents, $2$ et $-2$ (la courbe rose a deux points au-dessus de $x = 4$). Coche « Restreindre ».`);
+}
+
+// ───────────── 2. L'échiquier ─────────────
+
+const GRAIN_GRAMS = 0.025;
+const WORLD_RICE_TONNES = 5e8; // order of magnitude of a year's world harvest
+
+/** "= 1\,024" exactly up to 10^12, "\approx 9{,}22 \times 10^{18}" beyond (n is a BigInt). */
+function bigTex(n) {
+  if (n < 10n ** 12n) return `= ${nf(0).format(Number(n)).replace(/\s/g, "\\,")}`;
+  const s = n.toString();
+  const mant = Number(`${s[0]}.${s.slice(1, 4)}`);
+  return `\\approx ${numTex(mant, 2)} \\times 10^{${s.length - 1}}`;
+}
+
+function massText(tonnes) {
+  if (tonnes < 1e-3) return `${fmt(tonnes * 1e6, 1)} g`;
+  if (tonnes < 1) return `${fmt(tonnes * 1e3, 1)} kg`;
+  if (tonnes < 1e6) return `${fmt(tonnes, 0)} tonnes`;
+  return `${fmt(tonnes / 1e9, 1)} milliards de tonnes`;
+}
+
+function buildChessboard() {
+  const board = $("chessboard");
+  for (let i = 1; i <= 64; i++) {
+    const cell = document.createElement("div");
+    const row = Math.floor((i - 1) / 8);
+    cell.className = (row + (i - 1)) % 2 ? "dark" : "light";
+    board.append(cell);
+  }
+}
+
+function renderChess() {
+  const n = Number($("chess-n").value);
+  $("chess-n-out").textContent = n;
+  [...$("chessboard").children].forEach((cell, i) => {
+    cell.classList.toggle("filled", i < n);
+    cell.style.setProperty("--fill", ((i + 1) / 64).toFixed(3));
+  });
+  const onCase = 2n ** BigInt(n - 1);
+  const total = 2n ** BigInt(n) - 1n;
+  const tonnes = (Number(total) * GRAIN_GRAMS) / 1e6;
+  const rows = [
+    ["Grains sur la case", `2^{${n - 1}} ${bigTex(onCase)}`],
+    ["Total jusqu'ici", `2^{${n}} - 1 ${bigTex(total)}`],
+    ["Masse (25 mg le grain)", null, massText(tonnes)],
+  ];
+  if (tonnes > WORLD_RICE_TONNES / 100) {
+    rows.push(["Récoltes mondiales", null, `≈ ${fmt(tonnes / WORLD_RICE_TONNES, tonnes > WORLD_RICE_TONNES * 10 ? 0 : 2)} années`]);
+  }
+  const dl = $("chess-values");
+  dl.replaceChildren();
+  for (const [label, tex, text] of rows) {
+    const div = document.createElement("div");
+    const dt = Object.assign(document.createElement("dt"), { textContent: label });
+    const dd = document.createElement("dd");
+    if (tex) renderTex(dd, tex); else dd.textContent = text;
+    div.append(dt, dd);
+    dl.append(div);
+  }
+}
+
+// ───────────── 3. La fonction a^x ─────────────
+
+const expState = { a: 2, exact: fr(2) };
+
+function setBase(a, exact = null) {
+  expState.a = a;
+  expState.exact = exact;
+  $("exp-a").value = a;
+  renderExp();
+}
+
+function renderExp() {
+  const { a, exact } = expState;
+  const aTex = exact ? fracTex(exact) : numTex(a, 3);
+  $("exp-a-out").textContent = exact ? fracText(exact) : a > 2.718 && a < 2.7183 ? "e" : fmt(a, 3);
+  for (const chip of $("exp-presets").children) {
+    const v = chip.dataset.v ? Number(chip.dataset.v) : Number(chip.dataset.n) / Number(chip.dataset.d);
+    chip.classList.toggle("active", Math.abs(v - a) < 1e-9);
+  }
+  const constant = Math.abs(a - 1) < 0.005;
+  const inverse = $("exp-inverse").checked && !constant;
+
+  const c = themeColors();
+  const xs = linspace(-4, inverse ? 8 : 4, 500);
+  const traces = [{ x: xs, y: xs.map((x) => a ** x), mode: "lines", line: { color: c.curve, width: 2.5 }, hovertemplate: "a^%{x:.2f} = %{y:.3f}<extra></extra>" }];
+  traces.push({ x: [0, 1], y: [1, a], mode: "markers+text", text: ["(0 ; 1)", `(1 ; ${exact ? fracText(exact) : fmt(a)})`],
+    textposition: ["top left", "top left"], marker: { color: c.curve, size: 9 }, textfont: { color: c.fg }, hoverinfo: "skip" });
+  if (inverse) {
+    const ts = linspace(-8, 8, 600);
+    traces.push(
+      { x: [-4, 8], y: [-4, 8], mode: "lines", line: { color: c.muted, width: 1, dash: "dash" }, hoverinfo: "skip" },
+      { x: ts.map((t) => a ** t), y: ts, mode: "lines", line: { color: c.fit, width: 2.5 }, hovertemplate: "log(%{x:.2f}) = %{y:.3f}<extra></extra>" },
+      { x: [1, a], y: [0, 1], mode: "markers", marker: { color: c.fit, size: 9 }, hoverinfo: "skip" },
+    );
+  }
+  const view = inverse ? [-4, 8] : null;
+  Plotly.react("plot-exp", traces, layout(c, {
+    xaxis: axis(c, { range: view ?? [-4, 4] }),
+    yaxis: axis(c, { range: view ?? [-1, 8], ...(inverse ? { scaleanchor: "x", scaleratio: 1 } : {}) }),
+    shapes: [hline(0, c.midline, "dash", 2)],
+    annotations: [{ xref: "paper", x: 0.01, y: 0, yanchor: "bottom", xanchor: "left", showarrow: false, text: "asymptote y = 0", font: { color: c.midline } }],
+    uirevision: String(inverse),
+  }), PLOT_CONFIG);
+
+  const growing = a > 1;
+  const items = constant
+    ? ["Avec $a = 1$, $f(x) = 1^x = 1$ pour tout $x$ : la fonction est constante. C'est pourquoi la base 1 est exclue."]
+    : [
+      "$\\operatorname{dom} f = \\mathbb{R}$ et $\\operatorname{im} f = \\left]0 \\,;\\, +\\infty\\right[$ : $a^x > 0$ pour tout $x$.",
+      `La courbe passe par $(0 \\,;\\, 1)$ et $(1 \\,;\\, ${aTex})$, car $a^0 = 1$ et $a^1 = a$.`,
+      "L'axe $Ox$ est une asymptote horizontale ($y = 0$). Il n'y a pas d'asymptote verticale.",
+      growing
+        ? `$a = ${aTex} > 1$ : fonction strictement **croissante**, $\\lim_{x \\to -\\infty} a^x = 0$ et $\\lim_{x \\to +\\infty} a^x = +\\infty$.`
+        : `$0 < a = ${aTex} < 1$ : fonction strictement **décroissante**, $\\lim_{x \\to -\\infty} a^x = +\\infty$ et $\\lim_{x \\to +\\infty} a^x = 0$.`,
+    ];
+  const ul = document.createElement("ul");
+  for (const text of items) {
+    const li = document.createElement("li");
+    // **bold** markers become <strong>; the rest goes through renderMixed.
+    for (const [i, chunk] of text.split("**").entries()) {
+      const span = document.createElement(i % 2 ? "strong" : "span");
+      renderMixed(span, chunk);
+      li.append(span);
+    }
+    ul.append(li);
+  }
+  $("exp-props").replaceChildren(ul);
+
+  const table = $("exp-table");
+  table.replaceChildren();
+  const ks = [-3, -2, -1, 0, 1, 2, 3];
+  const head = table.insertRow(), body = table.insertRow();
+  renderTex(head.appendChild(document.createElement("th")), "x");
+  renderTex(body.appendChild(document.createElement("th")), "a^x");
+  for (const k of ks) {
+    renderTex(head.insertCell(), `${k}`);
+    const exactValue = exact ? pow(exact, k) : null;
+    const small = exactValue && Math.abs(exactValue.n) < 1e4 && exactValue.d < 1e4;
+    renderTex(body.insertCell(), small ? fracTex(exactValue) : numTex(a ** k, 3));
+  }
+}
+
+// ───────────── 4. Exemples résolus ─────────────
+
+function initExamples() {
+  for (const details of document.querySelectorAll("details[data-example]")) {
+    details.addEventListener("toggle", () => {
+      const list = details.querySelector(".steps");
+      if (!details.open || list.childElementCount) return;
+      const ex = TYPES[details.dataset.example].gen(seeded(11));
+      for (const s of ex.steps) appendStep(list, s);
+    });
+  }
+}
+
+// ───────────── 5. Convertisseur de logarithme ─────────────
+
+const readNumber = (s) => Number(s.trim().replace(",", ".").replace(/[−–]/g, "-"));
+
+function renderLog() {
+  const a = readNumber($("log-a").value);
+  const x = readNumber($("log-x").value);
+  const out = $("log-result");
+  out.className = "formula-box";
+  if (!Number.isFinite(a) || !Number.isFinite(x) || $("log-a").value.trim() === "" || $("log-x").value.trim() === "") {
+    out.textContent = "Entre une base et un nombre.";
+    return;
+  }
+  if (a <= 0 || a === 1) {
+    out.classList.add("warn");
+    renderMixed(out, "La base doit être strictement positive et différente de 1.");
+    return;
+  }
+  if (x <= 0) {
+    out.classList.add("warn");
+    renderMixed(out, `$\\log_{${numTex(a)}} ${numTex(x)}$ n'existe pas : une puissance de $${numTex(a)}$ est toujours strictement positive.`);
+    return;
+  }
+  const y = Math.log(x) / Math.log(a);
+  const exact = Math.abs(y - Math.round(y)) < 1e-9;
+  const yTex = exact ? `${Math.round(y)}` : numTex(y, 4);
+  const rel = exact ? "=" : "\\approx";
+  renderTex(out, `\\log_{${numTex(a)}} ${numTex(x)} ${rel} ${yTex} \\quad\\Longleftrightarrow\\quad ${numTex(a)}^{${yTex}} ${rel} ${numTex(x)}`, true);
+}
+
+// ───────────── wiring ─────────────
+
+export function initLessons() {
+  $("recip-fn").addEventListener("change", () => {
+    const fn = RECIPROCALS[$("recip-fn").value];
+    $("recip-a").value = fn === RECIPROCALS.temp ? 20 : 1.5; // 20 °C is the course's example
+    renderReciprocal();
+  });
+  $("recip-restrict").addEventListener("change", renderReciprocal);
+  $("recip-a").addEventListener("input", renderReciprocal);
+
+  buildChessboard();
+  $("chess-n").addEventListener("input", renderChess);
+
+  $("exp-a").addEventListener("input", () => setBase(Number($("exp-a").value)));
+  for (const chip of $("exp-presets").children) {
+    chip.addEventListener("click", () => {
+      if (chip.dataset.v) setBase(Number(chip.dataset.v));
+      else {
+        const f = fr(Number(chip.dataset.n), Number(chip.dataset.d));
+        setBase(value(f), f);
+      }
+    });
+  }
+  $("exp-inverse").addEventListener("change", renderExp);
+
+  initExamples();
+  for (const id of ["log-a", "log-x"]) $(id).addEventListener("input", renderLog);
+
+  renderAll();
+  return { renderPlots: () => { renderReciprocal(); renderExp(); } };
+}
+
+function renderAll() {
+  renderReciprocal();
+  renderChess();
+  renderExp();
+  renderLog();
+}

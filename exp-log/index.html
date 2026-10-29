@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exponentielles et logarithmes · Labo maths</title>
+  <meta name="description" content="Parcours interactif : fonctions réciproques, exponentielles, équations exponentielles, logarithmes, et générateur d'exercices corrigés pas à pas.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    try {
+      const t = localStorage.getItem("theme");
+      if (t) document.documentElement.dataset.theme = t;
+    } catch {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="crumbs"><a href="../">Labo maths</a><span aria-hidden="true">/</span><h1>Exponentielles et logarithmes</h1></nav>
+    <button id="theme-toggle" class="ghost" type="button" aria-label="Changer de thème">Thème</button>
+  </header>
+
+  <div class="course">
+    <nav class="chapters" aria-label="Chapitres">
+      <ol>
+        <li><a href="#reciproques">Fonctions réciproques</a></li>
+        <li><a href="#croissance">Croissance exponentielle</a></li>
+        <li><a href="#exponentielle">La fonction aˣ</a></li>
+        <li><a href="#equations">Équations exponentielles</a></li>
+        <li><a href="#logarithmes">Logarithmes</a></li>
+        <li><a href="#exercices">Exercices</a></li>
+      </ol>
+    </nav>
+
+    <main class="chapters-content">
+      <!-- 1 ─────────────────────────────────────────────── -->
+      <section id="reciproques" class="panel chapter">
+        <p class="kicker">Chapitre 1</p>
+        <h2>Fonctions réciproques</h2>
+        <p>Deux fonctions sont <strong>réciproques</strong> quand l'une « défait » ce que fait l'autre :
+          si <span data-tex="f"></span> envoie <span data-tex="a"></span> sur <span data-tex="b"></span>,
+          alors <span data-tex="f^{-1}"></span> renvoie <span data-tex="b"></span> sur <span data-tex="a"></span>.</p>
+        <p class="formula-box" data-tex="f(a) = b \;\Longleftrightarrow\; f^{-1}(b) = a" data-display></p>
+        <p>Pour trouver <span data-tex="f^{-1}"></span>, on <strong>échange <span data-tex="x"></span> et <span data-tex="y"></span></strong>,
+          puis on isole <span data-tex="y"></span>. Sur un graphique, cet échange est une
+          <strong>symétrie par rapport à la droite <span data-tex="y = x"></span></strong>.</p>
+
+        <div class="lab">
+          <div class="lab-controls">
+            <label class="row">Fonction
+              <select id="recip-fn">
+                <option value="cube">x³ (cube)</option>
+                <option value="temp">Celsius → Fahrenheit</option>
+                <option value="square">x² (carré)</option>
+                <option value="exp2">2ˣ (exponentielle)</option>
+              </select>
+            </label>
+            <label class="check" id="recip-restrict-wrap"><input type="checkbox" id="recip-restrict"> Restreindre à <span data-tex="[0 \,;\, +\infty["></span></label>
+            <div class="slider">
+              <label for="recip-a">Point <span data-tex="a"></span></label>
+              <output id="recip-a-out" for="recip-a"></output>
+              <input type="range" id="recip-a" min="-2" max="2" step="0.1" value="1.5">
+            </div>
+            <p id="recip-pair" class="pair"></p>
+            <p id="recip-verdict" class="verdict"></p>
+          </div>
+          <div id="plot-recip" class="plot" aria-label="Graphique de f et de sa réciproque"></div>
+        </div>
+        <p class="note-box">Une réciproque n'est une <strong>fonction</strong> que si <span data-tex="f"></span> est
+          <strong>strictement monotone</strong> (toujours croissante ou toujours décroissante). Sinon, on restreint son domaine :
+          c'est ce qu'on fait avec <span data-tex="x^2"></span> pour obtenir <span data-tex="\sqrt{x}"></span>.</p>
+      </section>
+
+      <!-- 2 ─────────────────────────────────────────────── -->
+      <section id="croissance" class="panel chapter">
+        <p class="kicker">Chapitre 2</p>
+        <h2>Croissance exponentielle</h2>
+        <p>Selon la légende, l'inventeur des échecs demanda au roi un grain de riz sur la première case,
+          deux sur la deuxième, quatre sur la troisième… en <strong>doublant</strong> à chaque case. Le roi accepta, sans se douter de ce que cela représentait.</p>
+
+        <div class="lab chess-lab">
+          <div class="lab-controls">
+            <div class="slider">
+              <label for="chess-n">Case <span data-tex="n"></span></label>
+              <output id="chess-n-out" for="chess-n"></output>
+              <input type="range" id="chess-n" min="1" max="64" step="1" value="10">
+            </div>
+            <dl class="values" id="chess-values"></dl>
+          </div>
+          <div id="chessboard" class="chessboard" aria-hidden="true"></div>
+        </div>
+
+        <h3>Règles de calcul des puissances</h3>
+        <p>Pour des bases <span data-tex="a, b > 0"></span> :</p>
+        <div class="rules">
+          <p data-tex="a^n = \underbrace{a \times a \times \dots \times a}_{n \text{ facteurs}}" data-display></p>
+          <p data-tex="a^0 = 1 \qquad a^1 = a \qquad a^{-n} = \frac{1}{a^n}" data-display></p>
+          <p data-tex="a^n \cdot a^p = a^{n+p} \qquad \frac{a^n}{a^p} = a^{n-p} \qquad (a^n)^p = a^{n \times p}" data-display></p>
+          <p data-tex="(a b)^n = a^n b^n \qquad \left(\frac{a}{b}\right)^n = \frac{a^n}{b^n} \qquad a^{\frac{n}{p}} = \sqrt[p]{a^n}" data-display></p>
+        </div>
+      </section>
+
+      <!-- 3 ─────────────────────────────────────────────── -->
+      <section id="exponentielle" class="panel chapter">
+        <p class="kicker">Chapitre 3</p>
+        <h2>La fonction exponentielle <span data-tex="f(x) = a^x"></span></h2>
+        <p>Une fonction exponentielle a sa variable <strong>dans l'exposant</strong>. La base <span data-tex="a"></span> doit être
+          strictement positive et différente de 1 : avec <span data-tex="a = 1"></span> ou <span data-tex="a = 0"></span> la fonction serait constante,
+          et avec <span data-tex="a < 0"></span> elle n'existerait pas partout (par exemple <span data-tex="(-4)^{1/2} = \sqrt{-4}"></span> n'existe pas).</p>
+
+        <div class="lab">
+          <div class="lab-controls">
+            <div class="slider">
+              <label for="exp-a">Base <span data-tex="a"></span></label>
+              <output id="exp-a-out" for="exp-a"></output>
+              <input type="range" id="exp-a" min="0.1" max="4" step="0.01" value="2">
+            </div>
+            <div class="chips" id="exp-presets">
+              <button type="button" data-n="2" data-d="1">2</button>
+              <button type="button" data-n="1" data-d="2">1/2</button>
+              <button type="button" data-n="3" data-d="1">3</button>
+              <button type="button" data-n="1" data-d="3">1/3</button>
+              <button type="button" data-n="3" data-d="2">3/2</button>
+              <button type="button" data-v="0.8">0,8</button>
+              <button type="button" data-v="1.14">1,14</button>
+              <button type="button" data-v="2.718281828459045">e</button>
+            </div>
+            <label class="check"><input type="checkbox" id="exp-inverse"> Afficher la réciproque (<span data-tex="\log_a x"></span>)</label>
+          </div>
+          <div id="plot-exp" class="plot" aria-label="Graphique de a puissance x"></div>
+        </div>
+
+        <div class="props" id="exp-props"></div>
+        <div class="table-wrap"><table class="value-table" id="exp-table"></table></div>
+      </section>
+
+      <!-- 4 ─────────────────────────────────────────────── -->
+      <section id="equations" class="panel chapter">
+        <p class="kicker">Chapitre 4</p>
+        <h2>Équations exponentielles</h2>
+        <p>L'inconnue est dans un exposant. La clé : une exponentielle est <strong>strictement monotone</strong>, donc</p>
+        <p class="formula-box" data-tex="a^x = a^y \;\Longleftrightarrow\; x = y" data-display></p>
+
+        <div class="methods">
+          <article class="method">
+            <h3>1. Même base</h3>
+            <p>Écrire les deux membres comme des puissances de la <strong>même base</strong> (au besoin, transformer la base : <span data-tex="4 = 2^2"></span>, <span data-tex="\sqrt{5} = 5^{1/2}"></span>), puis égaler les exposants.</p>
+            <details class="example" data-example="transform"><summary>Voir un exemple résolu</summary><ol class="steps"></ol></details>
+            <button type="button" class="ghost" data-train="level:1">S'entraîner</button>
+          </article>
+          <article class="method">
+            <h3>2. Mise en évidence</h3>
+            <p>Quand plusieurs termes contiennent <span data-tex="a^x"></span>, utiliser <span data-tex="a^{x+n} = a^x \cdot a^n"></span> et mettre <span data-tex="a^x"></span> en évidence.</p>
+            <details class="example" data-example="factor"><summary>Voir un exemple résolu</summary><ol class="steps"></ol></details>
+            <button type="button" class="ghost" data-train="factor">S'entraîner</button>
+          </article>
+          <article class="method">
+            <h3>3. Second degré</h3>
+            <p>Avec <span data-tex="a^{2x}"></span> et <span data-tex="a^x"></span>, poser <span data-tex="Y = a^x"></span> (avec <span data-tex="Y > 0"></span>) et résoudre avec <span data-tex="\Delta"></span>.</p>
+            <details class="example" data-example="quadratic"><summary>Voir un exemple résolu</summary><ol class="steps"></ol></details>
+            <button type="button" class="ghost" data-train="quadratic">S'entraîner</button>
+          </article>
+        </div>
+      </section>
+
+      <!-- 5 ─────────────────────────────────────────────── -->
+      <section id="logarithmes" class="panel chapter">
+        <p class="kicker">Chapitre 5 · pour aller plus loin</p>
+        <h2>Logarithmes</h2>
+        <p class="note-box">Ce chapitre va au-delà du cours sur les exponentielles : il introduit l'outil annoncé dès l'introduction,
+          la réciproque de <span data-tex="a^x"></span>.</p>
+        <p>Comment résoudre <span data-tex="2^x = 5"></span> ? 5 n'est pas une puissance entière de 2 : il faut une fonction qui « défait » l'exponentielle.
+          C'est le <strong>logarithme de base <span data-tex="a"></span></strong> :</p>
+        <p class="formula-box" data-tex="\begin{gathered} \log_a x = y \;\Longleftrightarrow\; a^y = x \\ \text{avec } a > 0,\ a \neq 1 \text{ et } x > 0 \end{gathered}" data-display></p>
+        <p>Le logarithme est <strong>l'exposant</strong> qu'il faut donner à <span data-tex="a"></span> pour obtenir <span data-tex="x"></span>.
+          Sa courbe est le miroir de celle de <span data-tex="a^x"></span> par rapport à <span data-tex="y = x"></span>
+          (coche « Afficher la réciproque » au chapitre 3).</p>
+
+        <div class="lab converter">
+          <div class="lab-controls">
+            <label class="row">Base <span data-tex="a"></span> <input id="log-a" type="text" inputmode="decimal" value="2"></label>
+            <label class="row">Nombre <span data-tex="x"></span> <input id="log-x" type="text" inputmode="decimal" value="8"></label>
+          </div>
+          <p id="log-result" class="formula-box" role="status"></p>
+        </div>
+
+        <h3>Propriétés</h3>
+        <div class="rules">
+          <p data-tex="\log_a 1 = 0 \qquad \log_a a = 1 \qquad \log_a (a^x) = x \qquad a^{\log_a x} = x" data-display></p>
+          <p data-tex="\log_a(xy) = \log_a x + \log_a y \qquad \log_a \frac{x}{y} = \log_a x - \log_a y \qquad \log_a(x^n) = n \log_a x" data-display></p>
+          <p data-tex="\text{Changement de base : } \log_a x = \frac{\ln x}{\ln a}" data-display></p>
+        </div>
+        <p><span data-tex="\ln"></span> est le logarithme <strong>népérien</strong>, de base <span data-tex="e \approx 2{,}718"></span> ;
+          <span data-tex="\log"></span> sans indice est souvent le logarithme <strong>décimal</strong> (base 10).
+          On les retrouve dans l'échelle de Richter, les décibels ou le pH : des échelles où chaque unité multiplie la grandeur par 10.</p>
+        <button type="button" class="ghost" data-train="level:4">S'entraîner sur les logarithmes</button>
+      </section>
+
+      <!-- 6 ─────────────────────────────────────────────── -->
+      <section id="exercices" class="panel chapter">
+        <p class="kicker">Chapitre 6</p>
+        <h2>Exercices</h2>
+        <div class="trainer-bar">
+          <label class="row">Type
+            <select id="ex-choice"></select>
+          </label>
+          <button type="button" id="ex-new" class="primary">Nouvel exercice</button>
+          <p id="ex-score" class="score" role="status"></p>
+        </div>
+
+        <div class="exercise" id="exercise">
+          <p class="prompt" id="ex-prompt"></p>
+          <p class="statement" id="ex-statement"></p>
+
+          <form id="ex-form" class="answer" autocomplete="off">
+            <label for="ex-answer" class="field-label">Ta réponse</label>
+            <div class="answer-row">
+              <input id="ex-answer" type="text" spellcheck="false" placeholder="ex. 3/2   ·   1 ; 3   ·   ∅">
+              <button type="submit" class="primary">Vérifier</button>
+            </div>
+            <p id="ex-feedback" class="feedback" role="status"></p>
+          </form>
+
+          <div class="helpers">
+            <button type="button" id="ex-hint" class="ghost">Indice</button>
+            <button type="button" id="ex-step" class="ghost">Étape suivante</button>
+            <button type="button" id="ex-all" class="ghost link">Tout afficher</button>
+          </div>
+          <ol id="ex-hints" class="hints"></ol>
+          <ol id="ex-steps" class="steps"></ol>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

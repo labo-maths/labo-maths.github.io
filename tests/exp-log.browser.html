@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>exp-log : vérification navigateur</title>
+<style>
+  body { font: 16px/1.4 monospace; margin: 12px; background: #fff; color: #000; }
+  .pass { color: #067d17; } .fail { color: #c00; font-weight: bold; }
+  iframe { width: 1280px; height: 900px; border: 1px solid #999; }
+  h1 { font-size: 20px; }
+</style>
+</head>
+<body>
+<h1 id="summary">running…</h1>
+<ol id="log"></ol>
+<iframe id="f" src="../exp-log/"></iframe>
+<script>
+// In-browser check of exp-log/ (open via the local server: /tests/exp-log.browser.html). Runs synchronously inside the iframe's
+// load handler so it completes before the parent's load event (screenshot time).
+const results = [];
+const ok = (cond, label) => results.push([!!cond, label]);
+document.getElementById("f").addEventListener("load", () => {
+  const w = document.getElementById("f").contentWindow;
+  const d = w.document;
+  const $ = (id) => d.getElementById(id);
+  const errors = [];
+  w.addEventListener("error", (e) => errors.push(String(e.message)));
+  w.addEventListener("unhandledrejection", (e) => errors.push("promise: " + e.reason));
+  const origError = w.console.error;
+  w.console.error = (...a) => { errors.push("console: " + a.join(" ")); origError.apply(w.console, a); };
+  const fire = (el, type) => el.dispatchEvent(new w.Event(type, { bubbles: true }));
+  const katexErrors = (root = d) => root.querySelectorAll(".katex-error").length;
+  const step = (label, fn) => { try { fn(); } catch (e) { errors.push(label + ": " + e.message); ok(false, label + " threw " + e.message); } };
+
+  step("initial render", () => {
+    ok(d.querySelectorAll("[data-tex] .katex").length > 40, "static formulas rendered (" + d.querySelectorAll("[data-tex] .katex").length + ")");
+    ok($("plot-recip").querySelector(".main-svg"), "reciprocal plot drawn");
+    ok($("plot-exp").querySelector(".main-svg"), "exponential plot drawn");
+    ok($("chessboard").children.length === 64, "chessboard has 64 cells");
+    ok($("exp-table").rows.length === 2 && $("exp-table").rows[0].cells.length === 8, "value table 2×8");
+    ok($("ex-statement").querySelector(".katex"), "first exercise rendered");
+    ok($("ex-choice").options.length === 16, "16 exercise choices (" + $("ex-choice").options.length + ")");
+  });
+
+  step("every exercise type", () => {
+    let bad = [];
+    for (const opt of [...$("ex-choice").options]) {
+      for (let rep = 0; rep < 4; rep++) {
+        $("ex-choice").value = opt.value; fire($("ex-choice"), "change");
+        let guard = 0;
+        while (!$("ex-hint").disabled && guard++ < 10) $("ex-hint").click();
+        guard = 0;
+        while (!$("ex-step").disabled && guard++ < 20) $("ex-step").click();
+        const hints = $("ex-hints").children.length, steps = $("ex-steps").children.length;
+        if (hints < 2 || steps < 3 || katexErrors($("exercise")) || !$("ex-all").hidden) bad.push(opt.value + " h" + hints + " s" + steps + " kerr" + katexErrors($("exercise")));
+      }
+    }
+    ok(bad.length === 0, "all 16 choices × 4: hints, full steps, no TeX error" + (bad.length ? " → " + bad.join(", ") : ""));
+  });
+
+  step("answer flow", () => {
+    const realRandom = w.Math.random;
+    w.Math.random = () => 0; // direct: a = 2, k = −4 → 2^x = 1/16
+    $("ex-choice").value = "direct"; fire($("ex-choice"), "change");
+    w.Math.random = realRandom;
+    const input = $("ex-answer"), form = $("ex-form");
+    input.value = "abc"; form.requestSubmit();
+    ok($("ex-feedback").classList.contains("warn"), "unreadable answer → warning");
+    input.value = "4"; form.requestSubmit();
+    ok($("ex-feedback").classList.contains("bad"), "wrong answer → error feedback");
+    input.value = "x = -4"; form.requestSubmit();
+    ok($("ex-feedback").classList.contains("ok"), "right answer → success (" + $("ex-feedback").textContent + ")");
+    ok(/Réussis : \d+ \/ \d+/.test($("ex-score").textContent), "score shown: " + $("ex-score").textContent);
+    ok($("ex-new").classList.contains("pulse"), "'Nouvel exercice' highlighted after success");
+    $("ex-new").click();
+    ok($("ex-feedback").textContent === "" && $("ex-steps").children.length === 0, "new exercise resets the card");
+  });
+
+  step("reciprocal lab", () => {
+    for (const v of ["cube", "temp", "square", "exp2"]) {
+      $("recip-fn").value = v; fire($("recip-fn"), "change");
+      ok(katexErrors($("reciproques")) === 0 && $("recip-verdict").textContent.length > 10, "reciprocal " + v + ": " + $("recip-verdict").textContent.slice(0, 60));
+    }
+    $("recip-fn").value = "square"; fire($("recip-fn"), "change");
+    ok($("recip-verdict").classList.contains("bad") && !$("recip-restrict-wrap").hidden, "x² unrestricted → not a function, restrict offered");
+    $("recip-restrict").checked = true; fire($("recip-restrict"), "change");
+    ok($("recip-verdict").classList.contains("ok"), "x² restricted → function √x");
+    $("recip-a").value = "-1"; fire($("recip-a"), "input");
+    ok(Number($("recip-a").min) === 0, "restricted slider starts at 0");
+  });
+
+  step("chessboard", () => {
+    $("chess-n").value = "64"; fire($("chess-n"), "input");
+    const t = $("chess-values").textContent;
+    ok(/1,84/.test(t) && /10/.test(t) && /milliards de tonnes/.test(t), "case 64: " + t.replace(/\s+/g, " ").slice(0, 120));
+    ok($("chessboard").querySelectorAll(".filled").length === 64, "64 cells filled");
+    $("chess-n").value = "3"; fire($("chess-n"), "input");
+    ok(/=\s?4(?!\d)/.test($("chess-values").textContent) && !/=\s*≈/.test($("chess-values").textContent), "case 3 holds 4 grains");
+    $("chess-n").value = "64"; fire($("chess-n"), "input");
+    ok(!/=\s*≈/.test($("chess-values").textContent), "no \"= ≈\" at case 64");
+  });
+
+  step("exponential lab", () => {
+    for (const chip of $("exp-presets").children) {
+      chip.click();
+      if (katexErrors($("exponentielle"))) ok(false, "TeX error with preset " + chip.textContent);
+    }
+    $("exp-presets").children[1].click(); // 1/2
+    ok(/décroissante/.test($("exp-props").textContent), "a = 1/2 → décroissante");
+    ok(/\\frac|1\s*8|8/.test($("exp-table").textContent), "exact table for 1/2: " + $("exp-table").rows[1].textContent.replace(/\s+/g, " ").slice(0, 80));
+    $("exp-presets").children[0].click(); // 2
+    ok(/croissante/.test($("exp-props").textContent) && !/décroissante/.test($("exp-props").textContent), "a = 2 → croissante");
+    $("exp-inverse").checked = true; fire($("exp-inverse"), "change");
+    ok($("plot-exp").querySelectorAll(".scatterlayer .trace").length >= 4, "inverse curve added");
+    $("exp-a").value = "1"; fire($("exp-a"), "input");
+    ok(/constante/.test($("exp-props").textContent), "a = 1 → constant warning");
+    $("exp-a").value = "2.5"; fire($("exp-a"), "input");
+    ok(katexErrors($("exponentielle")) === 0, "no TeX error in chapter 3");
+  });
+
+  step("worked examples", () => {
+    for (const det of d.querySelectorAll("details[data-example]")) {
+      det.open = true; fire(det, "toggle");
+    }
+  });
+
+  step("log converter", () => {
+    const set = (a, x) => { $("log-a").value = a; $("log-x").value = x; fire($("log-x"), "input"); };
+    set("2", "8"); ok(/3/.test($("log-result").textContent) && !$("log-result").classList.contains("warn"), "log₂ 8 = 3");
+    set("10", "0,001"); ok(/-3|−3/.test($("log-result").textContent), "log 0,001 = −3: " + $("log-result").textContent.slice(0, 40));
+    set("2", "-1"); ok($("log-result").classList.contains("warn"), "log of negative → warning");
+    set("1", "5"); ok($("log-result").classList.contains("warn"), "base 1 → warning");
+    set("2", "5"); ok(/2,3219/.test($("log-result").textContent), "log₂ 5 ≈ 2,3219");
+  });
+
+  step("theme toggle", () => {
+    const before = d.documentElement.dataset.theme || "";
+    $("theme-toggle").click();
+    ok((d.documentElement.dataset.theme || "") !== before, "theme switched to " + d.documentElement.dataset.theme);
+    $("theme-toggle").click();
+  });
+
+  step("train buttons", () => {
+    d.querySelector('[data-train="quadratic"]').click();
+    ok($("ex-choice").value === "quadratic", "'S'entraîner' selects the type");
+  });
+
+  // details toggle events are async: check them last, after a tick, still before the parent load event? No —
+  // they were dispatched synchronously above, so the steps are already there.
+  const examples = [...d.querySelectorAll("details[data-example] .steps")];
+  ok(examples.every((ol) => ol.children.length >= 3), "worked examples filled (" + examples.map((o) => o.children.length).join(", ") + ")");
+  ok(katexErrors() === 0, "no KaTeX error anywhere on the page (" + katexErrors() + ")");
+  ok(errors.length === 0, "no JavaScript errors" + (errors.length ? ": " + errors.join(" | ") : ""));
+
+  const log = document.getElementById("log");
+  for (const [pass, label] of results) {
+    const li = document.createElement("li");
+    li.className = pass ? "pass" : "fail";
+    li.textContent = (pass ? "PASS " : "FAIL ") + label;
+    log.append(li);
+  }
+  const failed = results.filter(([p]) => !p).length;
+  document.getElementById("summary").textContent = failed ? `${failed} FAILED / ${results.length}` : `ALL ${results.length} PASSED`;
+  document.getElementById("summary").className = failed ? "fail" : "pass";
+  document.title = document.getElementById("summary").textContent;
+});
+</script>
+</body>
+</html>

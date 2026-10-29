@@ -6,6 +6,7 @@ Site : https://labo-maths.github.io
 | Outil | Dossier |
 |---|---|
 | Fonctions sinusoïdales : `y = A·sin(ωx − φ) + D`, curseurs, saisie libre, ajustement automatique | [`sinusoides/`](sinusoides/) |
+| Exponentielles et logarithmes : fonctions réciproques, `aˣ`, équations exponentielles, logarithmes, générateur d'exercices avec indices et résolution pas à pas | [`exp-log/`](exp-log/) |
 
 ## Lancer en local
 
@@ -27,6 +28,9 @@ La partie mathématique n'a aucune dépendance et se teste avec Node ≥ 20 :
 node --test
 ```
 
+L'interface de `exp-log/` se vérifie dans le navigateur : avec le serveur local lancé,
+ouvrir http://localhost:8000/tests/exp-log.browser.html (toutes les lignes doivent être vertes).
+
 ## Structure
 
 ```
@@ -36,10 +40,21 @@ shared/
   theme.js          bouton de thème
   ticks.js          graduations en multiples de π
   parser.js         saisie utilisateur → fonction de x (math.js, liste blanche, pas d'eval)
+  numeric.js        linspace
+  fraction.js       fractions exactes (calcul et affichage TeX)
+  tex.js            rendu KaTeX (formules statiques, texte mêlé de $…$)
+  plot.js           couleurs du thème et mise en page Plotly communes
 sinusoides/
   index.html, style.css, app.js
   model.js          évaluation et ajustement d'une sinusoïde
+exp-log/
+  index.html, style.css, app.js
+  lessons.js        laboratoires interactifs du cours (réciproques, échiquier, aˣ, logarithmes)
+  exercises.js      générateur d'exercices (sans DOM) : énoncé, indices, étapes, solutions
+  trainer.js        carte d'exercice : indices, « Étape suivante », vérification de la réponse
 tests/
+  *.test.js         tests Node
+  exp-log.browser.html  vérification de l'interface dans le navigateur
 ```
 
 ## Ajouter un outil

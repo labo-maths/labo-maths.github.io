@@ -1,11 +1,14 @@
 // UI: reads controls, computes the curve, renders the plot and the formula.
 // math.js, KaTeX and Plotly are loaded as globals by index.html.
-/* global math, katex, Plotly */
+/* global math, Plotly */
 
-import { linspace, evaluateSinusoid, fitSinusoid, cosPhase, derived } from "./model.js";
+import { evaluateSinusoid, fitSinusoid, cosPhase, derived } from "./model.js";
+import { linspace } from "../shared/numeric.js";
 import { piTicks, piLabel } from "../shared/ticks.js";
 import { compileExpression } from "../shared/parser.js";
 import { initTheme } from "../shared/theme.js";
+import { renderTex, renderStaticTex } from "../shared/tex.js";
+import { themeColors, axis, layout, hline, PLOT_CONFIG } from "../shared/plot.js";
 
 const X_RANGE = [-10, 10];
 const Y_RANGE_SLIDERS = [-10.5, 10.5]; // fixed so changing A or D visibly moves the curve
@@ -43,10 +46,6 @@ function formulaTex(fn, { A, omega, phi, D }, rel = "=") {
   return `y ${rel} ${amp}\\${fn}(${w}x${ph})${d}`;
 }
 
-function renderTex(el, source, display = false) {
-  katex.render(source, el, { throwOnError: false, displayMode: display });
-}
-
 // ---------- computation ----------
 
 function sliderParams() {
@@ -67,16 +66,8 @@ function compute() {
 
 // ---------- plot ----------
 
-function cssVar(name) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
 function renderPlot({ ys, params, fit }) {
-  const c = {
-    fg: cssVar("--fg"), muted: cssVar("--muted"), grid: cssVar("--plot-grid"),
-    curve: cssVar("--curve"), fitC: cssVar("--fit"), mid: cssVar("--midline"),
-    bounds: cssVar("--bounds"), period: cssVar("--period"),
-  };
+  const c = themeColors();
   const traces = [{
     x: xs, y: ys.map((y) => (Number.isFinite(y) ? y : null)),
     mode: "lines", line: { color: c.curve, width: 2.5 }, name: "f(x)", hoverinfo: "x+y",
@@ -88,15 +79,12 @@ function renderPlot({ ys, params, fit }) {
   if (fit && fit.r2 >= 0.5) {
     traces.push({
       x: xs, y: evaluateSinusoid(fit, xs), mode: "lines", name: "ajustement",
-      line: { color: c.fitC, width: 1.5, dash: "dot" }, hoverinfo: "skip",
+      line: { color: c.fit, width: 1.5, dash: "dot" }, hoverinfo: "skip",
     });
   }
   if (trusted) {
     const { A, D } = params;
-    const hline = (y, color, dash) => ({
-      type: "line", xref: "paper", x0: 0, x1: 1, y0: y, y1: y, line: { color, width: 1.5, dash },
-    });
-    if ($("show-midline").checked) shapes.push(hline(D, c.mid, "dash"));
+    if ($("show-midline").checked) shapes.push(hline(D, c.midline, "dash"));
     if ($("show-bounds").checked) shapes.push(hline(D + A, c.bounds, "dot"), hline(D - A, c.bounds, "dot"));
     if ($("show-period").checked) {
       const { T, xPeak } = derived(params);
@@ -117,25 +105,20 @@ function renderPlot({ ys, params, fit }) {
     }
   }
 
-  const xaxis = {
-    range: X_RANGE, zeroline: true, zerolinecolor: c.muted, gridcolor: c.grid, color: c.fg,
-    title: { text: $("axis").value === "radians" ? "x (rad)" : "x" },
-  };
+  const xaxis = axis(c, { range: X_RANGE, title: { text: $("axis").value === "radians" ? "x (rad)" : "x" } });
   if ($("axis").value === "radians") {
     const { values, labels } = piTicks(...state.view);
     Object.assign(xaxis, { tickmode: "array", tickvals: values, ticktext: labels });
   }
-  const yaxis = {
-    zeroline: true, zerolinecolor: c.muted, gridcolor: c.grid, color: c.fg, title: { text: "y" },
+  const yaxis = axis(c, {
+    title: { text: "y" },
     ...(state.mode === "sliders" ? { range: Y_RANGE_SLIDERS } : { autorange: true }),
-  };
+  });
 
-  Plotly.react("plot", traces, {
-    paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: { color: c.fg },
-    margin: { l: 50, r: 16, t: 16, b: 44 }, showlegend: false,
+  Plotly.react("plot", traces, layout(c, {
     xaxis, yaxis, shapes, annotations,
     uirevision: state.mode, // keep the user's zoom across updates, reset it when switching mode
-  }, { responsive: true, displaylogo: false, modeBarButtonsToRemove: ["select2d", "lasso2d"] });
+  }), PLOT_CONFIG);
 }
 
 // ---------- formula & values ----------
@@ -269,9 +252,7 @@ for (const id of ["axis", "show-midline", "show-bounds", "show-period"]) {
 }
 initTheme($("theme-toggle"), update);
 
-for (const el of document.querySelectorAll("[data-tex]")) {
-  renderTex(el, el.dataset.tex, el.hasAttribute("data-display"));
-}
+renderStaticTex();
 
 update();
 

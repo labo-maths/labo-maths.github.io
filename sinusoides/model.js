@@ -4,11 +4,6 @@
 
 export const TAU = 2 * Math.PI;
 
-export function linspace(a, b, n) {
-  const step = (b - a) / (n - 1);
-  return Array.from({ length: n }, (_, i) => a + i * step);
-}
-
 /** Wrap an angle into (−π, π]. */
 export function normalizeAngle(a) {
   let r = ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;

@@ -13,14 +13,7 @@
 
 /* Sliders */
 .model { text-align: center; margin: 0 0 8px; }
-.slider {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  margin-bottom: 12px;
-}
-.slider output { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
-.slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.slider { margin-bottom: 12px; }
 
 /* Free input */
 .field-label { display: block; color: var(--muted); margin-bottom: 4px; }

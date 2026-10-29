@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { linspace } from "../shared/numeric.js";
 import {
-  linspace, normalizeAngle, evaluateSinusoid, fitSinusoid, cosPhase, derived,
+  normalizeAngle, evaluateSinusoid, fitSinusoid, cosPhase, derived,
 } from "../sinusoides/model.js";
 import { piLabel, piTicks } from "../shared/ticks.js";
 
