@@ -4,3 +4,6 @@ node_modules/
 
 # Course material kept locally, never published
 *.pdf
+
+# Claude Code instructions specific to this machine
+CLAUDE.local.md
