@@ -1,5 +1,7 @@
 // Calculator widget: input line, live preview, keypad and short history.
 // The maths lives in calc.js; this file only builds and wires the DOM.
+// Every part has a fixed size: a long or tall formula shrinks to fit its
+// line, then scrolls, so the keypad never moves while typing.
 
 import { calculate } from "./calc.js";
 import { renderTex } from "./tex.js";
@@ -22,11 +24,46 @@ const KEYS = [
   ["0"], [",", ",", "Virgule décimale"], ["π", "π", "Pi"], ["e", "e", "Nombre e ≈ 2,718"], ["Rép", "Rép", "Résultat précédent"],
 ];
 
+const HISTORY_SIZE = 5;
+const MIN_SCALE = 0.6; // a formula never shrinks below 60 % of its size: past that, it scrolls
+
 const el = (tag, props = {}, ...children) => {
   const node = Object.assign(document.createElement(tag), props);
   node.append(...children);
   return node;
 };
+
+/**
+ * A screen line of fixed size. Its content shrinks to fit, down to MIN_SCALE,
+ * then scrolls; `scrollTo` says which end stays visible ("start" or "end").
+ */
+function screenLine(tag, className, scrollTo, props = {}) {
+  const content = el("span", { className: "calc-fit" });
+  const line = el(tag, { className, ...props }, content);
+
+  function fit() {
+    content.style.fontSize = "";
+    let scale = 1;
+    // Wrapped text reflows when it shrinks, hence a few passes.
+    for (let pass = 0; pass < 3; pass++) {
+      const ratio = Math.min(line.clientWidth / content.offsetWidth, line.clientHeight / content.offsetHeight);
+      if (!(ratio < 1) || scale === MIN_SCALE) break; // also stops on NaN: line hidden or empty
+      scale = Math.max(MIN_SCALE, scale * ratio * 0.98);
+      content.style.fontSize = `${scale}em`;
+    }
+    line.scrollLeft = scrollTo === "end" ? line.scrollWidth : 0;
+  }
+
+  /** Shows TeX, or plain text with `asText`; `state` is an extra class on the line. */
+  function show(value = "", { asText = false, state = "" } = {}) {
+    line.className = state ? `${className} ${state}` : className;
+    if (asText || !value) content.textContent = value;
+    else renderTex(content, value);
+    fit();
+  }
+
+  return { line, show, fit };
+}
 
 /**
  * Builds a calculator inside `root`. With `onUse(text)`, a button sends the
@@ -45,8 +82,8 @@ export function initCalculator(root, { onUse } = {}) {
     placeholder: "ex. log_2(8)   ·   ln(5)/ln(2)",
     ariaLabel: "Calcul",
   });
-  const preview = el("div", { className: "calc-preview", ariaHidden: "true" });
-  const result = el("output", { className: "calc-result", ariaLive: "polite" });
+  const preview = screenLine("div", "calc-line calc-preview", "end", { ariaHidden: "true" });
+  const result = screenLine("output", "calc-line calc-result", "start", { ariaLive: "polite" });
   const use = el("button", { type: "button", className: "ghost calc-use", textContent: "→ Utiliser comme réponse", hidden: true });
   const keypad = el("div", { className: "calc-keys" });
   const historyList = el("ol", { className: "calc-history", ariaLabel: "Calculs précédents" });
@@ -62,33 +99,41 @@ export function initCalculator(root, { onUse } = {}) {
   const equals = el("button", { type: "button", className: "primary equals", textContent: "=", title: "Calculer (Entrée)" });
   keypad.append(clear, back, equals);
 
+  const screen = el("div", { className: "calc-screen" }, input, preview.line, result.line);
   root.classList.add("calculator");
-  root.append(
-    el("div", { className: "calc-screen" }, input, preview, el("div", { className: "calc-result-row" }, result, use)),
-    keypad,
-    historyList,
-  );
+  root.append(screen);
+  // The button's row is always there, so showing the button moves nothing.
+  if (onUse) root.append(el("div", { className: "calc-actions" }, use));
+  root.append(keypad, historyList);
+
+  // Refit when the width changes (narrow screens, calculator shown again)
+  // and once KaTeX's fonts arrive, since they change the formulas' size.
+  const refit = () => { preview.fit(); result.fit(); };
+  new ResizeObserver(refit).observe(screen);
+  document.fonts?.addEventListener("loadingdone", refit);
 
   /** Live view: TeX of what is typed and its value; errors only after "=". */
   function update(confirmed = false) {
     const text = input.value;
     use.hidden = true;
     shown = null;
-    result.className = "calc-result";
     if (!text.trim()) {
-      preview.replaceChildren();
-      result.textContent = "";
+      preview.show();
+      result.show();
       return null;
     }
     const r = calculate(text, ans);
     if (r.error) {
-      result.textContent = confirmed ? r.error : "…";
-      result.classList.add(confirmed ? "error" : "pending");
-      if (confirmed) preview.replaceChildren();
+      if (confirmed) {
+        preview.show();
+        result.show(r.error, { asText: true, state: "error" });
+      } else {
+        result.show("…", { asText: true, state: "pending" });
+      }
       return null;
     }
-    renderTex(preview, r.tex);
-    renderTex(result, `${r.result.exact ? "=" : "\\approx"} ${r.result.tex}`);
+    preview.show(r.tex);
+    result.show(`${r.result.exact ? "=" : "\\approx"} ${r.result.tex}`);
     use.hidden = !onUse || r.result.scientific;
     shown = r.result.text;
     return r;
@@ -100,7 +145,7 @@ export function initCalculator(root, { onUse } = {}) {
     ans = r.value;
     if (history[0]?.text !== input.value) {
       history.unshift({ text: input.value, ...r });
-      history.length = Math.min(history.length, 5);
+      history.length = Math.min(history.length, HISTORY_SIZE);
       renderHistory();
     }
   }
@@ -128,26 +173,34 @@ export function initCalculator(root, { onUse } = {}) {
     update();
   }
 
+  function backspace() {
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? start;
+    if (start !== end) input.setRangeText("", start, end, "end");
+    else if (start > 0) input.setRangeText("", start - 1, start, "end");
+    update();
+  }
+
+  function reset() {
+    input.value = "";
+    update();
+  }
+
   // Keep the caret in the input: keys must not take the focus.
   keypad.addEventListener("pointerdown", (e) => { if (e.target.closest("button")) e.preventDefault(); });
   keypad.addEventListener("click", (e) => {
     const key = e.target.closest("button");
     if (!key) return;
     if (key === equals) confirm();
-    else if (key === clear) { input.value = ""; update(); }
-    else if (key === back) {
-      const start = input.selectionStart ?? input.value.length;
-      const end = input.selectionEnd ?? start;
-      if (start !== end) input.setRangeText("", start, end, "end");
-      else if (start > 0) input.setRangeText("", start - 1, start, "end");
-      update();
-    } else insert(key.dataset.insert);
+    else if (key === clear) reset();
+    else if (key === back) backspace();
+    else insert(key.dataset.insert);
   });
 
   input.addEventListener("input", () => update());
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.preventDefault(); confirm(); }
-    if (e.key === "Escape") { input.value = ""; update(); }
+    if (e.key === "Escape") reset();
   });
   use.addEventListener("click", () => { if (shown) onUse(shown); });
 
