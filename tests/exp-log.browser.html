@@ -100,6 +100,12 @@ document.getElementById("f").addEventListener("load", () => {
     $("ex-answer").value = "";
     calc.querySelector(".calc-use").click();
     ok(/^0,48/.test($("ex-answer").value), "'Utiliser comme réponse' fills the answer: " + $("ex-answer").value);
+    const choice = $("ex-choice").value;
+    $("ex-choice").value = "logSolve"; fire($("ex-choice"), "change");
+    $("ex-answer").value = "";
+    calc.querySelector(".calc-use").click();
+    ok($("ex-answer").value === "0,48", "approximate exercise → rounded to 2 decimals: " + $("ex-answer").value);
+    $("ex-choice").value = choice; fire($("ex-choice"), "change");
     type("10^400"); enter();
     ok(result.classList.contains("error") && calc.querySelector(".calc-use").hidden, "overflow → error, no 'use' button");
     ok(katexErrors(calc) === 0, "no TeX error in the calculator");

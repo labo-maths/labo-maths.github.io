@@ -137,6 +137,8 @@ export function initTrainer() {
   newExercise({ focus: false });
 
   return {
+    /** The exercise on screen. */
+    get exercise() { return state.ex; },
     /** Jump to the trainer with a given type or level selected. */
     train(choice) {
       $("ex-choice").value = choice;
