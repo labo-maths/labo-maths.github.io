@@ -1,3 +1,5 @@
+/* Light by default; theme-boot.js sets data-theme before first paint
+   (saved choice, else the system setting). */
 :root {
   --bg: #f4f6f8;
   --panel: #ffffff;
@@ -15,28 +17,8 @@
   --bounds: #059669;
   --period: #7c3aed;
   --radius: 10px;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #15171a;
-    --panel: #1e2126;
-    --border: #30353c;
-    --fg: #eef0f3;
-    --muted: #9aa3ae;
-    --accent: #7aa7ff;
-    --accent-soft: #24324d;
-    --error: #ff7b7b;
-    --warn: #f2b45c;
-    --plot-grid: #2a2e34;
-    --curve: #7aa7ff;
-    --fit: #f472b6;
-    --midline: #ffb86b;
-    --bounds: #4ade80;
-    --period: #c4a5ff;
-    color-scheme: dark;
-  }
 }
 
 :root[data-theme="dark"] {
@@ -120,6 +102,18 @@ button, input, select { font: inherit; color: inherit; }
   cursor: pointer;
 }
 .primary:hover { filter: brightness(1.1); }
+
+/* Text field with its label above */
+.field-label { display: block; color: var(--muted); margin-bottom: 4px; }
+.text-input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-family: var(--mono);
+}
+.text-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.text-input[aria-invalid="true"] { border-color: var(--error); }
 
 /* Labelled slider: label and value on one line, range input below */
 .slider { display: grid; grid-template-columns: 1fr auto; align-items: baseline; }

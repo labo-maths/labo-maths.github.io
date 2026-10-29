@@ -6,12 +6,7 @@
   <title>Labo maths</title>
   <meta name="description" content="Outils interactifs pour comprendre les mathématiques en les manipulant.">
   <link rel="stylesheet" href="shared/theme.css">
-  <script>
-    try {
-      const t = localStorage.getItem("theme");
-      if (t) document.documentElement.dataset.theme = t;
-    } catch {}
-  </script>
+  <script src="shared/theme-boot.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -46,8 +41,8 @@
             <text x="140" y="44" fill="var(--muted)" font-size="18" font-style="italic">aˣ · logₐ</text>
           </svg>
           <h2>Exponentielles et logarithmes</h2>
-          <p>Fonctions réciproques, <span class="tex">aˣ</span>, équations exponentielles et logarithmes,
-            avec un générateur d'exercices corrigés pas à pas.</p>
+          <p>Fonctions réciproques, <span class="tex">aˣ</span>, logarithmes, équations exponentielles et logarithmiques,
+            un pense-bête et un générateur d'exercices corrigés pas à pas.</p>
         </a>
       </li>
     </ul>

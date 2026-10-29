@@ -16,17 +16,7 @@
 .slider { margin-bottom: 12px; }
 
 /* Free input */
-.field-label { display: block; color: var(--muted); margin-bottom: 4px; }
-#expr {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-}
-#expr:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-#expr[aria-invalid="true"] { border-color: var(--error); }
+#expr { width: 100%; }
 .error { color: var(--error); min-height: 1.5em; margin: 4px 0; font-size: 0.9em; }
 .hint { color: var(--muted); margin: 4px 0; font-size: 0.9em; }
 /* Plot */

@@ -1,10 +1,15 @@
-// Light/dark theme shared by every page. Each page also has a tiny inline
-// script in <head> that applies the saved theme before first paint.
+// Light/dark theme shared by every page. theme-boot.js, loaded in <head>,
+// applies it before first paint; this module wires the button.
 
 const media = matchMedia("(prefers-color-scheme: dark)");
+const systemTheme = () => (media.matches ? "dark" : "light");
+
+function savedTheme() {
+  try { return localStorage.getItem("theme"); } catch { return null; }
+}
 
 export function currentTheme() {
-  return document.documentElement.dataset.theme || (media.matches ? "dark" : "light");
+  return document.documentElement.dataset.theme || systemTheme();
 }
 
 /**
@@ -12,16 +17,21 @@ export function currentTheme() {
  * (button or system setting), e.g. to redraw a plot that reads CSS colours.
  */
 export function initTheme(button, onChange = () => {}) {
-  const label = () => {
-    button.textContent = currentTheme() === "dark" ? "☀ Mode clair" : "☾ Mode sombre";
+  const apply = (theme) => {
+    document.documentElement.dataset.theme = theme;
+    button.textContent = theme === "dark" ? "☀ Mode clair" : "☾ Mode sombre";
   };
   button.addEventListener("click", () => {
     const next = currentTheme() === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
     try { localStorage.setItem("theme", next); } catch {}
-    label();
+    apply(next);
     onChange();
   });
-  media.addEventListener("change", () => { label(); onChange(); });
-  label();
+  // Follow the system setting until the user picks a theme.
+  media.addEventListener("change", () => {
+    if (savedTheme()) return;
+    apply(systemTheme());
+    onChange();
+  });
+  apply(currentTheme());
 }
