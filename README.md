@@ -6,7 +6,7 @@ Site : https://labo-maths.github.io
 | Outil | Dossier |
 |---|---|
 | Fonctions sinusoïdales : `y = A·sin(ωx − φ) + D`, curseurs, saisie libre, ajustement automatique | [`sinusoides/`](sinusoides/) |
-| Exponentielles et logarithmes : fonctions réciproques, `aˣ`, équations exponentielles, logarithmes, générateur d'exercices avec indices et résolution pas à pas | [`exp-log/`](exp-log/) |
+| Exponentielles et logarithmes : fonctions réciproques, `aˣ`, équations exponentielles, logarithmes, générateur d'exercices avec indices, résolution pas à pas et calculatrice | [`exp-log/`](exp-log/) |
 
 ## Lancer en local
 
@@ -44,6 +44,8 @@ shared/
   fraction.js       fractions exactes (calcul et affichage TeX)
   tex.js            rendu KaTeX (formules statiques, texte mêlé de $…$)
   plot.js           couleurs du thème et mise en page Plotly communes
+  calc.js           calculatrice : saisie → arbre → valeur, TeX et erreurs en français (sans DOM, pas d'eval)
+  calculator.js/.css  widget calculatrice (écran, aperçu TeX, clavier, historique, Rép)
 sinusoides/
   index.html, style.css, app.js
   model.js          évaluation et ajustement d'une sinusoïde

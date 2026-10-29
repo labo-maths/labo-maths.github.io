@@ -173,7 +173,10 @@
 .trainer-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .trainer-bar select { max-width: 16em; }
 .score { margin: 0 0 0 auto; color: var(--muted); font-variant-numeric: tabular-nums; }
-.exercise { margin-top: 16px; }
+.ex-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; margin-top: 16px; }
+.ex-layout:has(#calc[hidden]) { grid-template-columns: minmax(0, 1fr); }
+#calc[hidden] { display: none; }
+#calc-toggle[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .prompt { color: var(--muted); margin: 0; }
 .statement { font-size: 1.35rem; margin: 4px 0 16px; overflow-x: auto; max-width: none; }
 .field-label { display: block; color: var(--muted); margin-bottom: 4px; font-size: 0.9em; }
@@ -223,4 +226,6 @@
   .chessboard { max-width: 320px; }
   .plot { height: 320px; }
   .score { margin-left: 0; }
+  .ex-layout { grid-template-columns: minmax(0, 1fr); }
+  #calc { max-width: 420px; }
 }

@@ -7,6 +7,7 @@
   <meta name="description" content="Parcours interactif : fonctions réciproques, exponentielles, équations exponentielles, logarithmes, et générateur d'exercices corrigés pas à pas.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
   <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="../shared/calculator.css">
   <link rel="stylesheet" href="style.css">
   <script>
     try {
@@ -206,29 +207,33 @@
             <select id="ex-choice"></select>
           </label>
           <button type="button" id="ex-new" class="primary">Nouvel exercice</button>
+          <button type="button" id="calc-toggle" class="ghost" aria-controls="calc" aria-pressed="true">Calculatrice</button>
           <p id="ex-score" class="score" role="status"></p>
         </div>
 
-        <div class="exercise" id="exercise">
-          <p class="prompt" id="ex-prompt"></p>
-          <p class="statement" id="ex-statement"></p>
+        <div class="ex-layout">
+          <div class="exercise" id="exercise">
+            <p class="prompt" id="ex-prompt"></p>
+            <p class="statement" id="ex-statement"></p>
 
-          <form id="ex-form" class="answer" autocomplete="off">
-            <label for="ex-answer" class="field-label">Ta réponse</label>
-            <div class="answer-row">
-              <input id="ex-answer" type="text" spellcheck="false" placeholder="ex. 3/2   ·   1 ; 3   ·   ∅">
-              <button type="submit" class="primary">Vérifier</button>
+            <form id="ex-form" class="answer" autocomplete="off">
+              <label for="ex-answer" class="field-label">Ta réponse</label>
+              <div class="answer-row">
+                <input id="ex-answer" type="text" spellcheck="false" placeholder="ex. 3/2   ·   1 ; 3   ·   ∅">
+                <button type="submit" class="primary">Vérifier</button>
+              </div>
+              <p id="ex-feedback" class="feedback" role="status"></p>
+            </form>
+
+            <div class="helpers">
+              <button type="button" id="ex-hint" class="ghost">Indice</button>
+              <button type="button" id="ex-step" class="ghost">Étape suivante</button>
+              <button type="button" id="ex-all" class="ghost link">Tout afficher</button>
             </div>
-            <p id="ex-feedback" class="feedback" role="status"></p>
-          </form>
-
-          <div class="helpers">
-            <button type="button" id="ex-hint" class="ghost">Indice</button>
-            <button type="button" id="ex-step" class="ghost">Étape suivante</button>
-            <button type="button" id="ex-all" class="ghost link">Tout afficher</button>
+            <ol id="ex-hints" class="hints"></ol>
+            <ol id="ex-steps" class="steps"></ol>
           </div>
-          <ol id="ex-hints" class="hints"></ol>
-          <ol id="ex-steps" class="steps"></ol>
+          <aside id="calc" aria-label="Calculatrice"></aside>
         </div>
       </section>
     </main>

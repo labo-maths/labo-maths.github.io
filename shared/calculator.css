@@ -1,0 +1,68 @@
+/* Calculator widget (shared/calculator.js). Colours come from theme.css. */
+
+.calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 12px;
+  line-height: 1.4;
+}
+
+.calc-screen {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.calc-screen:focus-within { border-color: var(--accent); }
+.calc-input {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  outline: none;
+}
+.calc-preview { min-height: 1.6em; color: var(--muted); overflow-x: auto; overflow-y: hidden; }
+.calc-result-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.calc-result { min-height: 1.6em; font-size: 1.2rem; font-weight: 600; text-align: right; flex: 1; overflow-x: auto; overflow-y: hidden; }
+.calc-result.pending { color: var(--muted); font-weight: 400; }
+.calc-result.error { color: var(--error); font-size: 0.9rem; font-weight: 400; text-align: left; }
+.calc-use { font-size: 0.85rem; padding: 2px 10px; }
+
+.calc-keys { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.calc-keys button {
+  min-height: 38px;
+  padding: 4px 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.calc-keys button:hover { border-color: var(--accent); }
+.calc-keys button:active { background: var(--accent-soft); }
+.calc-keys .digit { font-weight: 600; font-variant-numeric: tabular-nums; }
+.calc-keys .action { color: var(--muted); }
+.calc-keys .equals { grid-column: span 3; border: 0; background: var(--accent); border-radius: 8px; }
+
+.calc-history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.calc-history:empty { display: none; }
+.calc-history button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  padding: 2px 6px;
+  cursor: pointer;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.calc-history button:hover { background: var(--panel); color: var(--fg); }

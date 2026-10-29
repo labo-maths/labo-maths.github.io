@@ -76,6 +76,39 @@ document.getElementById("f").addEventListener("load", () => {
     ok($("ex-feedback").textContent === "" && $("ex-steps").children.length === 0, "new exercise resets the card");
   });
 
+  step("calculator", () => {
+    const calc = $("calc"), input = calc.querySelector(".calc-input"), result = calc.querySelector(".calc-result");
+    const key = (label) => [...calc.querySelectorAll(".calc-keys button")].find((b) => b.textContent === label);
+    const type = (text) => { input.value = text; fire(input, "input"); };
+    const enter = () => input.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    ok(!calc.hidden && calc.querySelectorAll(".calc-keys button").length === 33, "calculator shown with 33 keys");
+    type("log_2(8)");
+    ok(/=\s*3$/.test(result.textContent.trim()) && calc.querySelector(".calc-preview .katex"), "live result log₂ 8 = 3: " + result.textContent.trim().slice(-20));
+    type("2 +");
+    ok(result.classList.contains("pending") && !result.classList.contains("error"), "incomplete input → no error while typing");
+    enter();
+    ok(result.classList.contains("error") && /incomplète/.test(result.textContent), "error shown on Enter: " + result.textContent);
+    key("C").click();
+    for (const k of ["ln", "2"]) key(k).click();
+    ok(input.value === "ln(2)", "keys insert at the caret: " + input.value);
+    key(")").click(); key("⌫").click();
+    ok(input.value === "ln(2)", "backspace removes one character: " + input.value);
+    key("=").click();
+    ok(calc.querySelectorAll(".calc-history li").length === 1, "result added to history");
+    key("C").click(); key("Rép").click(); key("x²").click(); key("=").click();
+    ok(/0,48/.test(result.textContent), "Rép² = (ln 2)² ≈ 0,48: " + result.textContent.trim().slice(-20));
+    $("ex-answer").value = "";
+    calc.querySelector(".calc-use").click();
+    ok(/^0,48/.test($("ex-answer").value), "'Utiliser comme réponse' fills the answer: " + $("ex-answer").value);
+    type("10^400"); enter();
+    ok(result.classList.contains("error") && calc.querySelector(".calc-use").hidden, "overflow → error, no 'use' button");
+    ok(katexErrors(calc) === 0, "no TeX error in the calculator");
+    $("calc-toggle").click();
+    ok(calc.hidden && $("calc-toggle").getAttribute("aria-pressed") === "false", "toggle hides the calculator");
+    $("calc-toggle").click();
+    ok(!calc.hidden, "toggle shows it again");
+  });
+
   step("reciprocal lab", () => {
     for (const v of ["cube", "temp", "square", "exp2"]) {
       $("recip-fn").value = v; fire($("recip-fn"), "change");
