@@ -20,6 +20,17 @@ Site : https://labo-maths.github.io
 Visites comptées avec GoatCounter (sans cookie, donc sans bannière de consentement) : script dans le `<head>` de chaque page,
 chemins préfixés par le domaine (`labo-maths.github.io/…`) pour les distinguer du portfolio sur https://exokayn.goatcounter.com (rien n'est affiché sur le site).
 
+### Connexions entre les services
+
+| Lien | Où c'est réglé | Détails |
+|---|---|---|
+| GitHub → GitHub Pages | Repo → **Settings** → **Pages** | Publication de la branche `main` à chaque push, sans build (`.nojekyll` désactive Jekyll). |
+| Pages → cdnjs (Cloudflare) | balises `<script>` / `<link>` des pages | KaTeX `0.16.11` (`katex.min.js`, `katex.min.css`) et math.js `13.2.0`, versions figées dans l'URL. Aucun compte. Si cdnjs est inaccessible, formules et calculs ne s'affichent pas. |
+| Pages → jsDelivr | balise `<script>` des pages | Plotly `plotly.js-dist-min@2.35.2`. Aucun compte. |
+| Pages → GoatCounter | `<head>` de chaque page (`gc.zgo.at/count.js`, envoi vers `exokayn.goatcounter.com/count`) | Compte GoatCounter `exokayn`, partagé avec le portfolio. |
+
+Changer de version d'une bibliothèque = modifier l'URL dans chaque page qui la charge.
+
 ## Lancer en local
 
 Fichiers statiques, sans installation (math.js, KaTeX et Plotly viennent d'un CDN).
