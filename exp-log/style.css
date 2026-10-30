@@ -3,10 +3,11 @@
 /* Softer light theme for this long-reading page: warm paper tones instead of pure white (screen only). */
 @media screen {
   :root:not([data-theme="dark"]) {
-    --bg: #ebe8e1;
-    --panel: #f6f4ef;
+    --bg: #edebe5;
+    --panel: #f3f1ec;
     --border: #d8d3c8;
-    --fg: #1f2630;
+    --fg: #1a1f27;
+    --muted: #434b57;
     --accent-soft: #dfe5f2;
     --plot-grid: #e0dcd2;
   }
