@@ -15,6 +15,7 @@ Site statique d'outils de maths interactifs (cours de secondaire, en français).
 
 ## exp-log
 
+- Thème clair adouci (tons papier, écran seulement) : variables redéfinies en tête de `exp-log/style.css`, pas dans `shared/theme.css`.
 - Un chapitre par « page » (`section.chapter`, affichée selon le hash de l'URL), barre de chapitres et liens précédent/suivant générés dans `app.js`.
 - Méthodes : cartes `.method` dans une grille `.methods`, avec un `.method-actions` (« Voir un exemple » `data-example="<type>"`, « S'entraîner » `data-train="<choix>"`).
 - Exemples résolus : générés par `TYPES[type].gen(seeded(11))` (même exemple à chaque fois), affichés dans un **panneau pleine largeur** sous la rangée de la carte (`initExamples` dans `lessons.js`), étapes en grille calcul à gauche / commentaire à droite. Préférer ce type de présentation aux menus `<details>` dans des colonnes étroites, jugés trop chargés.

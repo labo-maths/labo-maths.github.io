@@ -1,5 +1,17 @@
 /* Exponentielles et logarithmes: course layout, labs, trainer. Shared tokens live in shared/theme.css. */
 
+/* Softer light theme for this long-reading page: warm paper tones instead of pure white (screen only). */
+@media screen {
+  :root:not([data-theme="dark"]) {
+    --bg: #ebe8e1;
+    --panel: #f6f4ef;
+    --border: #d8d3c8;
+    --fg: #1f2630;
+    --accent-soft: #dfe5f2;
+    --plot-grid: #e0dcd2;
+  }
+}
+
 .course {
   max-width: 1080px;
   margin: 0 auto;
