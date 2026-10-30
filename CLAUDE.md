@@ -19,6 +19,7 @@ Site statique d'outils de maths interactifs (cours de secondaire, en français).
 - Un chapitre par « page » (`section.chapter`, affichée selon le hash de l'URL), barre de chapitres et liens précédent/suivant générés dans `app.js`.
 - Méthodes : cartes `.method` dans une grille `.methods`, avec un `.method-actions` (« Voir un exemple » `data-example="<type>"`, « S'entraîner » `data-train="<choix>"`).
 - Exemples résolus : générés par `TYPES[type].gen(seeded(11))` (même exemple à chaque fois), affichés dans un **panneau pleine largeur** sous la rangée de la carte (`initExamples` dans `lessons.js`), étapes en grille calcul à gauche / commentaire à droite. Préférer ce type de présentation aux menus `<details>` dans des colonnes étroites, jugés trop chargés.
+- Tableaux de valeurs pilotés par un curseur : classe `.fixed-table` (colonnes égales, hauteur fixe) pour que seules les valeurs changent, jamais la taille des cases.
 - Nouveau type d'exercice : l'ajouter à `TYPES` dans `exercises.js` (énoncé, indices, étapes `{ tex, note }`, solutions, `residual`) ; les tests Node le vérifient automatiquement.
 
 ## Vérification

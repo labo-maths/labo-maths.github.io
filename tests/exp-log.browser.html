@@ -159,6 +159,7 @@ document.getElementById("f").addEventListener("load", () => {
       chip.click();
       if (katexErrors($("exponentielle"))) ok(false, "TeX error with preset " + chip.textContent);
     }
+    ok(w.getComputedStyle($("exp-table")).tableLayout === "fixed", "value table cells keep a fixed size");
     $("exp-presets").children[1].click(); // 1/2
     ok(/décroissante/.test($("exp-props").textContent), "a = 1/2 → décroissante");
     ok(/\\frac|1\s*8|8/.test($("exp-table").textContent), "exact table for 1/2: " + $("exp-table").rows[1].textContent.replace(/\s+/g, " ").slice(0, 80));

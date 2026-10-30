@@ -166,6 +166,11 @@
 .value-table { border-collapse: collapse; min-width: 100%; }
 .value-table th, .value-table td { border: 1px solid var(--border); padding: 6px 10px; text-align: center; }
 .value-table th { background: var(--bg); }
+/* Fixed cells: the slider changes the values, never the layout (widest value ≈ "999,999") */
+.fixed-table { table-layout: fixed; width: 100%; min-width: 44em; }
+.fixed-table th:first-child { width: 4em; }
+.fixed-table td, .fixed-table th { white-space: nowrap; overflow: hidden; }
+.fixed-table tr:last-child > * { height: 3em; }
 
 /* Methods */
 .methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
